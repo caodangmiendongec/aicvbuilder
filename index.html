@@ -1,0 +1,3862 @@
+﻿<!DOCTYPE html>
+<html lang="vi" data-theme="midnight">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI CV Builder - Tạo CV Bằng Trí Tuệ Nhân Tạo</title>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Lora:ital,wght@0,400;0,600;1,400&family=Outfit:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,500;0,700;1,400&display=swap"
+        rel="stylesheet">
+
+    <!-- Nhúng thư viện cấu hình Gemini API -->
+    <script type="importmap">
+      {
+        "imports": {
+          "@google/generative-ai": "https://esm.run/@google/generative-ai"
+        }
+      }
+    </script>
+
+    <!-- Nhúng thư viện xuất file PDF chuyên nghiệp -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+    <!-- Nhúng thư viện Lucide Icons chuyên nghiệp -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <style>
+        /* HỆ THỐNG WORKSPACE THEMES (BIẾN CSS) */
+
+        /* 1. Midnight Theme (Tối cổ điển - Mặc định) */
+        :root,
+        html[data-theme="midnight"] {
+            --workspace-bg: #090d16;
+            --workspace-panel: rgba(17, 24, 39, 0.75);
+            --workspace-border: rgba(255, 255, 255, 0.08);
+            --workspace-text: #f3f4f6;
+            --workspace-text-muted: #9ca3af;
+            --workspace-title: #ffffff;
+            --workspace-input-bg: rgba(255, 255, 255, 0.04);
+            --workspace-input-border: rgba(255, 255, 255, 0.1);
+            --workspace-input-text: #ffffff;
+            --accent-glow: rgba(99, 102, 241, 0.12);
+            --header-gradient: linear-gradient(135deg, #6366f1 0%, #a855f7 50%, #ec4899 100%);
+            --panel-stripe: linear-gradient(90deg, #6366f1, #a855f7);
+            --btn-primary-bg: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+            --btn-primary-hover: linear-gradient(135deg, #4f46e5 0%, #4338ca 100%);
+            --btn-primary-shadow: rgba(99, 102, 241, 0.3);
+
+            /* CV Default Styles */
+            --cv-primary: #1e3a8a;
+            --cv-font: 'Times New Roman', Times, serif;
+            --cv-text: #1f2937;
+            --cv-bg: #ffffff;
+        }
+
+        /* 2. Alabaster Theme (Sáng lịch lãm) */
+        html[data-theme="alabaster"] {
+            --workspace-bg: #f1f5f9;
+            --workspace-panel: rgba(255, 255, 255, 0.85);
+            --workspace-border: rgba(15, 23, 42, 0.08);
+            --workspace-text: #1e293b;
+            --workspace-text-muted: #64748b;
+            --workspace-title: #0f172a;
+            --workspace-input-bg: rgba(15, 23, 42, 0.02);
+            --workspace-input-border: rgba(15, 23, 42, 0.08);
+            --workspace-input-text: #0f172a;
+            --accent-glow: rgba(79, 70, 229, 0.05);
+            --header-gradient: linear-gradient(135deg, #4f46e5 0%, #7c3aed 50%, #db2777 100%);
+            --panel-stripe: linear-gradient(90deg, #4f46e5, #7c3aed);
+            --btn-primary-bg: linear-gradient(135deg, #4f46e5 0%, #3730a3 100%);
+            --btn-primary-hover: linear-gradient(135deg, #3730a3 0%, #1e1b4b 100%);
+            --btn-primary-shadow: rgba(79, 70, 229, 0.15);
+        }
+
+        /* 3. Cyberpunk Theme (Neon rực rỡ) */
+        html[data-theme="neon"] {
+            --workspace-bg: #03000a;
+            --workspace-panel: rgba(10, 2, 20, 0.85);
+            --workspace-border: rgba(0, 242, 254, 0.25);
+            --workspace-text: #00f2fe;
+            --workspace-text-muted: #a5f3fc;
+            --workspace-title: #ffffff;
+            --workspace-input-bg: rgba(255, 0, 128, 0.04);
+            --workspace-input-border: rgba(255, 0, 128, 0.3);
+            --workspace-input-text: #ffffff;
+            --accent-glow: rgba(0, 242, 254, 0.18);
+            --header-gradient: linear-gradient(135deg, #00f2fe 0%, #4facfe 50%, #ff007f 100%);
+            --panel-stripe: linear-gradient(90deg, #00f2fe, #ff007f);
+            --btn-primary-bg: linear-gradient(135deg, #ff007f 0%, #7f00ff 100%);
+            --btn-primary-hover: linear-gradient(135deg, #7f00ff 0%, #00f2fe 100%);
+            --btn-primary-shadow: rgba(255, 0, 128, 0.35);
+        }
+
+        /* 4. Sunset Theme (Hoàng hôn ấm áp) */
+        html[data-theme="sunset"] {
+            --workspace-bg: #1a0c18;
+            --workspace-panel: rgba(28, 12, 26, 0.8);
+            --workspace-border: rgba(251, 146, 60, 0.15);
+            --workspace-text: #fed7aa;
+            --workspace-text-muted: #fdba74;
+            --workspace-title: #ffffff;
+            --workspace-input-bg: rgba(251, 146, 60, 0.03);
+            --workspace-input-border: rgba(251, 146, 60, 0.2);
+            --workspace-input-text: #ffffff;
+            --accent-glow: rgba(251, 146, 60, 0.12);
+            --header-gradient: linear-gradient(135deg, #f97316 0%, #ec4899 50%, #8b5cf6 100%);
+            --panel-stripe: linear-gradient(90deg, #f97316, #ec4899);
+            --btn-primary-bg: linear-gradient(135deg, #ea580c 0%, #c026d3 100%);
+            --btn-primary-hover: linear-gradient(135deg, #c026d3 0%, #7c3aed 100%);
+            --btn-primary-shadow: rgba(234, 88, 12, 0.25);
+        }
+
+        * {
+            box-sizing: border-box;
+            transition: background 0.3s, border-color 0.3s, color 0.3s, box-shadow 0.3s;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: radial-gradient(circle at 50% 50%, var(--accent-glow) 0%, var(--workspace-bg) 100%);
+            background-attachment: fixed;
+            margin: 0;
+            padding: 20px;
+            color: var(--workspace-text);
+            min-height: 100vh;
+        }
+
+        /* Top Header & Theme bar */
+        .app-header {
+            max-width: 1400px;
+            margin: 0 auto 20px auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+            padding: 10px 0;
+            border-bottom: 1px solid var(--workspace-border);
+        }
+
+        @media (max-width: 768px) {
+            .app-header {
+                flex-direction: column;
+                text-align: center;
+            }
+        }
+
+        .brand-section h1 {
+            font-size: 2.2rem;
+            font-weight: 800;
+            margin: 0 0 5px 0;
+            background: var(--header-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            letter-spacing: -0.5px;
+        }
+
+        .brand-section p {
+            color: var(--workspace-text-muted);
+            margin: 0;
+            font-size: 0.95rem;
+        }
+
+        /* Workspace Theme Toggler */
+        .theme-selector-container {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: var(--workspace-panel);
+            border: 1px solid var(--workspace-border);
+            padding: 6px 14px;
+            border-radius: 12px;
+        }
+
+        .theme-selector-label {
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--workspace-text-muted);
+        }
+
+        .theme-toggle-buttons {
+            display: flex;
+            gap: 6px;
+        }
+
+        .theme-toggle-btn {
+            background: transparent;
+            border: 1px solid var(--workspace-border);
+            color: var(--workspace-text-muted);
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            width: auto;
+            transition: all 0.2s;
+        }
+
+        .theme-toggle-btn:hover {
+            color: var(--workspace-title);
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .theme-toggle-btn.active {
+            background: var(--btn-primary-bg);
+            color: #ffffff;
+            border-color: transparent;
+            box-shadow: 0 2px 8px var(--btn-primary-shadow);
+        }
+
+        .intro-banner {
+            max-width: 1400px;
+            margin: 0 auto 30px auto;
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.08) 0%, rgba(168, 85, 247, 0.03) 100%);
+            border: 1px solid rgba(99, 102, 241, 0.2);
+            border-radius: 20px;
+            padding: 25px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+            backdrop-filter: blur(10px);
+            position: relative;
+        }
+
+        @media (max-width: 900px) {
+            .intro-banner {
+                flex-direction: column;
+                text-align: center;
+            }
+        }
+
+        .intro-content {
+            flex: 1;
+        }
+
+        .intro-badge {
+            background: linear-gradient(90deg, #6366f1, #a855f7);
+            color: #ffffff;
+            font-size: 0.75rem;
+            font-weight: 700;
+            padding: 4px 10px;
+            border-radius: 6px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            display: inline-block;
+            margin-bottom: 10px;
+        }
+
+        .intro-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin: 0 0 10px 0;
+            color: var(--workspace-title);
+        }
+
+        .intro-desc {
+            font-size: 0.95rem;
+            color: var(--workspace-text-muted);
+            margin: 0;
+            line-height: 1.5;
+        }
+
+        .intro-features {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin-top: 15px;
+        }
+
+        .intro-feat-badge {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid var(--workspace-border);
+            padding: 5px 12px;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            color: var(--workspace-text);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        /* Workspace Grid */
+        .workspace {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1.1fr 0.9fr;
+            gap: 30px;
+            align-items: start;
+        }
+
+        @media (max-width: 1024px) {
+            .workspace {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Panel Styling */
+        .panel {
+            background: var(--workspace-panel);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--workspace-border);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Panel phải chứa tabs - cho phép scroll, không clip nội dung */
+        .result-panel {
+            overflow: visible;
+        }
+
+        .result-panel>.panel::before {
+            border-radius: 20px 20px 0 0;
+        }
+
+        .panel::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: var(--panel-stripe);
+        }
+
+        .panel-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            margin-top: 0;
+            margin-bottom: 25px;
+            color: var(--workspace-title);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid var(--workspace-border);
+            padding-bottom: 15px;
+        }
+
+        .panel-title span {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* Form Controls */
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        @media (max-width: 600px) {
+            body {
+                padding: 10px;
+            }
+
+            .panel {
+                padding: 15px 12px;
+            }
+
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+
+            .cv-controls {
+                padding: 12px;
+                flex-direction: column;
+                align-items: stretch;
+                gap: 12px;
+            }
+
+            .cv-opt-section {
+                justify-content: space-between;
+                width: 100%;
+            }
+
+            .btn-pdf {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+
+        label {
+            display: block;
+            font-weight: 500;
+            margin-bottom: 8px;
+            color: var(--workspace-text);
+            font-size: 0.95rem;
+        }
+
+        input,
+        textarea,
+        select {
+            width: 100%;
+            padding: 12px 16px;
+            background: var(--workspace-input-bg);
+            border: 1px solid var(--workspace-input-border);
+            border-radius: 10px;
+            color: var(--workspace-input-text);
+            font-size: 0.95rem;
+            font-family: inherit;
+            outline: none;
+        }
+
+        select option {
+            background-color: #1e293b !important;
+            color: #ffffff !important;
+        }
+
+        input:focus,
+        textarea:focus,
+        select:focus {
+            border-color: #818cf8;
+            background: rgba(255, 255, 255, 0.06);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+        }
+
+        textarea {
+            height: 90px;
+            resize: vertical;
+        }
+
+        /* Gợi Ý Kỹ Năng & Ngành học */
+        .quick-sectors {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 8px;
+        }
+
+        .sector-tag {
+            background: rgba(99, 102, 241, 0.1);
+            border: 1px solid rgba(99, 102, 241, 0.25);
+            color: #818cf8;
+            padding: 5px 12px;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .sector-tag:hover {
+            background: #6366f1;
+            color: #ffffff;
+            transform: translateY(-1px);
+        }
+
+        /* Premium Alert Box */
+        .api-box {
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.08) 0%, rgba(217, 119, 6, 0.03) 100%);
+            border: 1px solid rgba(245, 158, 11, 0.25);
+            padding: 20px;
+            border-radius: 14px;
+            margin-bottom: 25px;
+        }
+
+        /* Interactive Buttons */
+        button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            font-family: inherit;
+            font-weight: 600;
+            font-size: 1rem;
+            padding: 14px 24px;
+            border-radius: 12px;
+            border: none;
+            cursor: pointer;
+            width: 100%;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .btn-primary {
+            background: var(--btn-primary-bg);
+            color: #ffffff;
+            box-shadow: 0 4px 15px var(--btn-primary-shadow);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px var(--btn-primary-shadow);
+            background: var(--btn-primary-hover);
+        }
+
+        .btn-primary:active {
+            transform: translateY(0);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid var(--workspace-border);
+            color: var(--workspace-text);
+            padding: 8px 16px;
+            font-size: 0.85rem;
+            width: auto;
+            border-radius: 8px;
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.12);
+            transform: translateY(-1px);
+        }
+
+        .btn-pdf {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: #ffffff;
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25);
+            width: auto;
+            padding: 10px 20px;
+            font-size: 0.95rem;
+        }
+
+        .btn-pdf:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 18px rgba(16, 185, 129, 0.4);
+            background: linear-gradient(135deg, #059669 0%, #047857 100%);
+        }
+
+        /* TABS KẾT QUẢ */
+        .workspace-tabs {
+            display: flex;
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid var(--workspace-border);
+            border-radius: 12px;
+            padding: 4px;
+            margin-bottom: 20px;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 10px 15px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            background: transparent;
+            color: var(--workspace-text-muted);
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .tab-btn:hover {
+            color: var(--workspace-text);
+        }
+
+        .tab-btn.active {
+            background: var(--workspace-panel);
+            color: var(--workspace-title);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+            min-height: 200px;
+        }
+
+        #email-tab.active,
+        #feedback-tab.active {
+            overflow-y: auto;
+        }
+
+        /* Toolbar Tùy Chỉnh Style CV */
+        .cv-controls {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            gap: 15px;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--workspace-border);
+            border-radius: 14px;
+            padding: 15px 20px;
+            margin-bottom: 20px;
+        }
+
+        .cv-opt-section {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .cv-opt-label {
+            font-size: 0.85rem;
+            color: var(--workspace-text-muted);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Color Circle Pickers */
+        .color-pickers {
+            display: flex;
+            gap: 8px;
+        }
+
+        .color-dot {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 2px solid transparent;
+            box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.2);
+            transition: transform 0.2s, border-color 0.2s;
+        }
+
+        .color-dot:hover {
+            transform: scale(1.2);
+        }
+
+        .color-dot.active {
+            border-color: #ffffff;
+            transform: scale(1.15);
+            box-shadow: 0 0 8px rgba(255, 255, 255, 0.5);
+        }
+
+        /* Font selector tab */
+        .font-selector {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 8px;
+            padding: 3px;
+            display: flex;
+            gap: 2px;
+        }
+
+        .font-tab {
+            padding: 5px 12px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            color: var(--workspace-text-muted);
+            cursor: pointer;
+            border-radius: 6px;
+            transition: all 0.2s;
+            display: inline-block;
+            width: auto;
+        }
+
+        .font-tab:hover {
+            color: var(--workspace-text);
+        }
+
+        .font-tab.active {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--workspace-text);
+        }
+
+        /* Loading indicators */
+        .loading-overlay {
+            display: none;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(9, 13, 22, 0.85);
+            z-index: 10;
+            backdrop-filter: blur(8px);
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 15px;
+            border-radius: 20px;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid rgba(99, 102, 241, 0.1);
+            border-top: 4px solid #6366f1;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        .loading-text {
+            color: #ffffff;
+            font-weight: 600;
+            font-size: 1.1rem;
+            text-align: center;
+            max-width: 80%;
+            line-height: 1.5;
+        }
+
+        /* A4 Page Container & Simulated Paper */
+        .cv-preview-container {
+            overflow: hidden;
+            border-radius: 12px;
+            background: #27272a;
+            padding: 15px;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.5);
+            box-sizing: border-box;
+            width: 100%;
+        }
+
+        .cv-preview-scale-wrapper {
+            transition: transform 0.2s ease;
+            width: 210mm;
+            height: 297mm;
+            flex-shrink: 0;
+            display: flex;
+            justify-content: center;
+        }
+
+        #cv-preview {
+            background: var(--cv-bg);
+            color: var(--cv-text);
+            font-family: var(--cv-font);
+            width: 210mm;
+            height: 297mm;
+            min-width: 210mm;
+            min-height: 297mm;
+            max-height: 297mm;
+            box-sizing: border-box;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+            position: relative;
+            font-size: 13px;
+            line-height: 1.45;
+            transition: all 0.3s;
+            text-align: left;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 70mm 140mm;
+            overflow: hidden;
+            flex-shrink: 0;
+        }
+
+        .cv-sidebar {
+            background: #f8fafc;
+            border-right: 1px solid #e2e8f0;
+            padding: 12mm 6mm 12mm 8mm;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            box-sizing: border-box;
+            height: 297mm;
+        }
+
+        .cv-main {
+            padding: 12mm 12mm 12mm 8mm;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            box-sizing: border-box;
+            height: 297mm;
+        }
+
+        .cv-avatar-container {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 5px;
+        }
+
+        #cv-avatar-wrapper {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            border: 3px solid var(--cv-primary);
+            overflow: hidden;
+            position: relative;
+            background: #e2e8f0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+            flex-shrink: 0;
+        }
+
+        #cv-avatar-placeholder {
+            font-size: 2.5rem;
+            color: #94a3b8;
+            line-height: 1;
+        }
+
+        .cv-side-section {
+            margin-bottom: 0;
+        }
+
+        .cv-side-title {
+            font-size: 14px;
+            font-weight: 800;
+            color: var(--cv-primary);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            border-bottom: 1.5px solid var(--cv-primary);
+            padding-bottom: 3px;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .cv-contact-vertical {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            font-size: 12px;
+            color: #475569;
+        }
+
+        .cv-contact-vertical div {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            line-height: 1.35;
+            word-break: break-all;
+        }
+
+        .cv-contact-vertical svg {
+            width: 12px;
+            height: 12px;
+            fill: var(--cv-primary);
+            flex-shrink: 0;
+        }
+
+        .cv-skills-list-vertical {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            margin: 0;
+            padding: 0;
+            list-style: none;
+        }
+
+        .skill-badge-vertical {
+            background: #ffffff;
+            color: #1e293b;
+            padding: 5px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 600;
+            border: 1px solid #e2e8f0;
+            line-height: 1.35;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
+        }
+
+        .cert-item-vertical {
+            font-size: 12px;
+            color: #334155;
+            display: flex;
+            align-items: flex-start;
+            line-height: 1.35;
+            margin-bottom: 5px;
+        }
+
+        .cv-main-header {
+            margin-bottom: 0;
+        }
+
+        .cv-main-header h2 {
+            margin: 0 0 3px 0;
+            font-size: 25px;
+            font-weight: 800;
+            color: var(--cv-primary);
+            letter-spacing: -0.5px;
+            text-transform: uppercase;
+        }
+
+        .cv-main-header .major {
+            font-size: 14.5px;
+            font-weight: 700;
+            color: #475569;
+            margin: 0;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .cv-main-header .header-line {
+            height: 2.5px;
+            width: 40px;
+            background: var(--cv-primary);
+            margin-top: 8px;
+        }
+
+        .cv-main-section {
+            margin-bottom: 0;
+        }
+
+        .cv-main-title {
+            font-size: 14px;
+            font-weight: 800;
+            color: var(--cv-primary);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            border-bottom: 1.5px solid var(--cv-primary);
+            padding-bottom: 3px;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .cv-goal {
+            font-size: 13px;
+            color: #334155;
+            text-align: justify;
+            line-height: 1.45;
+        }
+
+        /* Timeline styling for Experience items */
+        .cv-exp-item {
+            position: relative;
+            padding-left: 12px;
+            border-left: 1.5px solid #e2e8f0;
+            margin-bottom: 8px;
+        }
+
+        .cv-exp-item::before {
+            content: '';
+            position: absolute;
+            left: -5px;
+            top: 4px;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--cv-primary);
+            border: 2px solid #ffffff;
+            box-shadow: 0 0 0 1px var(--cv-primary);
+        }
+
+        .cv-exp-item:last-child {
+            border-left: 1.5px solid transparent;
+            margin-bottom: 0;
+        }
+
+        .cv-exp-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            font-weight: 700;
+            font-size: 13px;
+            color: #0f172a;
+            margin-bottom: 2px;
+        }
+
+        .cv-exp-org {
+            color: var(--cv-primary);
+            font-weight: 800;
+        }
+
+        .cv-exp-time {
+            font-weight: 600;
+            color: #64748b;
+            font-size: 11.5px;
+            white-space: nowrap;
+        }
+
+        .cv-exp-desc {
+            margin: 0;
+            padding-left: 12px;
+            font-size: 12px;
+            color: #334155;
+            line-height: 1.4;
+        }
+
+        .cv-exp-desc li {
+            margin-bottom: 3px;
+        }
+
+        /* --- CẤU HÌNH CÁC PHONG CÁCH BỐ CỤC CV (LAYOUT STYLES) --- */
+
+        /* 1. MẪU CHUYÊN NGHIỆP (layout-executive - Mặc định: Trái Sidebar, Phải Main) */
+        #cv-preview.layout-executive {
+            display: grid;
+            grid-template-columns: 70mm 140mm;
+            grid-template-rows: auto 1fr;
+            height: 297mm;
+            width: 210mm;
+            overflow: hidden;
+        }
+
+        #cv-preview.layout-executive .cv-sidebar {
+            grid-column: 1;
+            grid-row: 1 / 3;
+            background: #f8fafc;
+            border-right: 1px solid #e2e8f0;
+            padding: 12mm 6mm 12mm 8mm;
+            height: 297mm;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        #cv-preview.layout-executive .cv-header {
+            grid-column: 2;
+            grid-row: 1;
+            padding: 12mm 12mm 4mm 8mm;
+            background: transparent;
+            color: var(--cv-text);
+        }
+
+        #cv-preview.layout-executive .cv-header h2 {
+            color: var(--cv-primary);
+        }
+
+        #cv-preview.layout-executive .cv-header .major {
+            color: #475569;
+        }
+
+        #cv-preview.layout-executive .cv-header .header-line {
+            display: block;
+            background: var(--cv-primary);
+        }
+
+        #cv-preview.layout-executive .cv-main {
+            grid-column: 2;
+            grid-row: 2;
+            padding: 2mm 12mm 12mm 8mm;
+            height: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        /* 2. MẪU THANH LỊCH (layout-elegant - Editorial Elite Layout) */
+        #cv-preview.layout-elegant {
+            display: grid;
+            grid-template-columns: 72mm 138mm;
+            grid-template-rows: auto 1fr;
+            height: 297mm;
+            width: 210mm;
+            overflow: hidden;
+            background: #ffffff;
+        }
+
+        #cv-preview.layout-elegant .cv-header {
+            grid-column: 1 / 3;
+            grid-row: 1;
+            background: #ffffff;
+            color: var(--cv-text);
+            padding: 12mm 12mm 6mm 12mm;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: flex-start;
+            border-bottom: 2px solid var(--cv-primary);
+            position: relative;
+        }
+
+        #cv-preview.layout-elegant .cv-header h2 {
+            color: var(--cv-primary) !important;
+            margin: 0 0 4px 0;
+            font-size: 26px;
+            font-weight: 800;
+            letter-spacing: -1px;
+            text-transform: uppercase;
+        }
+
+        #cv-preview.layout-elegant .cv-header .major {
+            color: #475569 !important;
+            font-size: 15px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+        }
+
+        #cv-preview.layout-elegant .cv-header .header-line {
+            display: none;
+        }
+
+        #cv-preview.layout-elegant .cv-sidebar {
+            grid-column: 1;
+            grid-row: 2;
+            background: #fafafa;
+            border-right: 1.5px solid #eaeaea;
+            border-left: none;
+            padding: 8mm 6mm 8mm 12mm;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        #cv-preview.layout-elegant .cv-main {
+            grid-column: 2;
+            grid-row: 2;
+            padding: 8mm 12mm 8mm 8mm;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        /* 3. MẪU SÁNG TẠO (layout-creative - Asymmetric Banner, Floating Accent Sidebar) */
+        #cv-preview.layout-creative {
+            display: grid;
+            grid-template-columns: 75mm 135mm;
+            grid-template-rows: auto 1fr;
+            height: 297mm;
+            width: 210mm;
+            overflow: hidden;
+        }
+
+        #cv-preview.layout-creative .cv-header {
+            grid-column: 1 / 3;
+            grid-row: 1;
+            background: #1e1b4b;
+            /* Deep Indigo base */
+            color: #ffffff;
+            padding: 12mm;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 4px solid var(--cv-primary);
+            position: relative;
+        }
+
+        #cv-preview.layout-creative .cv-header::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            width: 120px;
+            height: 100%;
+            background: linear-gradient(135deg, transparent 0%, rgba(255, 255, 255, 0.03) 100%);
+            pointer-events: none;
+        }
+
+        #cv-preview.layout-creative .cv-header h2 {
+            color: #ffffff !important;
+            font-size: 25px;
+            font-weight: 800;
+            margin: 0;
+            letter-spacing: -0.5px;
+        }
+
+        #cv-preview.layout-creative .cv-header .major {
+            color: #c7d2fe !important;
+            font-size: 14px;
+            font-weight: 700;
+            margin-top: 4px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        #cv-preview.layout-creative .cv-header .header-line {
+            display: none;
+        }
+
+        #cv-preview.layout-creative .cv-sidebar {
+            grid-column: 1;
+            grid-row: 2;
+            background: rgba(243, 244, 246, 0.7);
+            border-right: 1px solid #e5e7eb;
+            padding: 8mm 6mm 8mm 8mm;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            height: 100%;
+        }
+
+        #cv-preview.layout-creative .cv-sidebar .cv-avatar-container {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 10px;
+        }
+
+        #cv-preview.layout-creative .cv-sidebar #cv-avatar-wrapper {
+            width: 85px;
+            height: 85px;
+            border-radius: 20px;
+            border: 3px solid var(--cv-primary);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        }
+
+        #cv-preview.layout-creative .cv-sidebar .cv-side-title {
+            color: var(--cv-primary);
+            border-bottom: 2px solid var(--cv-primary);
+            font-size: 13px;
+            font-weight: 800;
+            margin-bottom: 8px;
+            padding-bottom: 3px;
+        }
+
+        #cv-preview.layout-creative .cv-sidebar .cv-contact-vertical {
+            color: #4b5563;
+            font-size: 11px;
+            gap: 6px;
+        }
+
+        #cv-preview.layout-creative .cv-sidebar .cv-contact-vertical svg {
+            fill: var(--cv-primary);
+            width: 12px;
+            height: 12px;
+        }
+
+        #cv-preview.layout-creative .cv-sidebar .skill-badge-vertical {
+            background: #ffffff;
+            color: #1f2937;
+            border: 1px solid #e5e7eb;
+            padding: 4px 8px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        #cv-preview.layout-creative .cv-main {
+            grid-column: 2;
+            grid-row: 2;
+            padding: 8mm 12mm 8mm 8mm;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        #cv-preview.layout-creative .cv-main-section {
+            margin-bottom: 0;
+        }
+
+        /* 4. MẪU CÔNG NGHỆ (layout-tech - Clean Tech Grid, Modern Accent Layout) */
+        #cv-preview.layout-tech {
+            display: grid;
+            grid-template-columns: 138mm 72mm;
+            grid-template-rows: auto 1fr;
+            height: 297mm;
+            width: 210mm;
+            overflow: hidden;
+        }
+
+        #cv-preview.layout-tech .cv-header {
+            grid-column: 1 / 3;
+            grid-row: 1;
+            padding: 10mm 12mm;
+            background: #ffffff;
+            border-bottom: 2.5px solid var(--cv-primary);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        #cv-preview.layout-tech .cv-header h2 {
+            color: var(--cv-primary);
+            font-size: 22px;
+            font-weight: 800;
+            margin: 0;
+            letter-spacing: -0.5px;
+        }
+
+        #cv-preview.layout-tech .cv-header .major {
+            color: #475569;
+            font-size: 12px;
+            font-weight: 700;
+            margin-top: 4px;
+            letter-spacing: 0.5px;
+        }
+
+        #cv-preview.layout-tech .cv-header .header-line {
+            display: none;
+        }
+
+        #cv-preview.layout-tech .cv-sidebar {
+            grid-column: 2;
+            grid-row: 2;
+            background: #f0f4f8;
+            border-left: 1px solid #d9e2ec;
+            padding: 10mm 6mm 10mm 6mm;
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+            height: 100%;
+        }
+
+        #cv-preview.layout-tech .cv-sidebar .cv-avatar-container {
+            display: flex;
+            justify-content: center;
+        }
+
+        #cv-preview.layout-tech .cv-sidebar #cv-avatar-wrapper {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            border: 3px solid var(--cv-primary);
+        }
+
+        #cv-preview.layout-tech .cv-side-section {
+            background: #ffffff;
+            border: 1px solid #d9e2ec;
+            border-radius: 8px;
+            padding: 8px 10px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.01);
+        }
+
+        #cv-preview.layout-tech .cv-side-title {
+            font-size: 13px;
+            font-weight: 800;
+            color: var(--cv-primary);
+            margin-bottom: 6px;
+            border-bottom: 1.5px solid var(--cv-primary);
+            padding-bottom: 3px;
+        }
+
+        #cv-preview.layout-tech .cv-skills-list-vertical {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        #cv-preview.layout-tech .cv-skills-list-vertical .skill-badge-vertical {
+            padding: 4px 6px;
+            font-size: 11px;
+            border-radius: 4px;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            font-weight: 600;
+        }
+
+        #cv-preview.layout-tech .cv-contact-vertical {
+            gap: 5px;
+            font-size: 11px;
+        }
+
+        #cv-preview.layout-tech .cv-main {
+            grid-column: 1;
+            grid-row: 2;
+            padding: 10mm 6mm 10mm 12mm;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            height: 100%;
+        }
+
+        /* 5. MẪU CARD DELUXE (layout-card - Premium Dashboard Panels, Gradient left accent bars) */
+        #cv-preview.layout-card {
+            display: grid;
+            grid-template-columns: 74mm 136mm;
+            grid-template-rows: auto 1fr;
+            height: 297mm;
+            width: 210mm;
+            overflow: hidden;
+            background: #f1f5f9;
+            padding: 8mm;
+            gap: 8px;
+        }
+
+        #cv-preview.layout-card .cv-header {
+            grid-column: 1 / 3;
+            grid-row: 1;
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 16px;
+            padding: 6mm 10mm;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.015);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-left: 5px solid var(--cv-primary);
+        }
+
+        #cv-preview.layout-card .cv-header h2 {
+            color: var(--cv-primary);
+            font-size: 23px;
+            font-weight: 800;
+            margin: 0;
+            letter-spacing: -0.5px;
+        }
+
+        #cv-preview.layout-card .cv-header .major {
+            color: #475569;
+            font-size: 14px;
+            font-weight: 700;
+            margin-top: 3px;
+        }
+
+        #cv-preview.layout-card .cv-header .header-line {
+            display: none;
+        }
+
+        #cv-preview.layout-card .cv-sidebar {
+            grid-column: 1;
+            grid-row: 2;
+            background: transparent !important;
+            border: none !important;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            height: auto;
+        }
+
+        #cv-preview.layout-card .cv-sidebar .cv-side-section,
+        #cv-preview.layout-card .cv-sidebar .cv-avatar-container {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 16px;
+            padding: 5mm 6mm;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.015);
+            border-left: 4px solid var(--cv-primary);
+        }
+
+        #cv-preview.layout-card .cv-sidebar .cv-avatar-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 5mm;
+        }
+
+        #cv-preview.layout-card .cv-sidebar #cv-avatar-wrapper {
+            width: 75px;
+            height: 75px;
+            border-radius: 50%;
+            border: 3px solid var(--cv-primary);
+        }
+
+        #cv-preview.layout-card .cv-main {
+            grid-column: 2;
+            grid-row: 2;
+            background: transparent !important;
+            border: none !important;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            height: auto;
+        }
+
+        #cv-preview.layout-card .cv-main-section {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 16px;
+            padding: 5mm 7mm;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.015);
+            border-left: 4px solid var(--cv-primary);
+        }
+
+        /* 6. MẪU COLUMNAR PRO (layout-triple - 3 Cột VIP: Trái Sidebar, Giữa/Phải Main chia làm 2 làn song song) */
+        #cv-preview.layout-triple {
+            display: grid;
+            grid-template-columns: 60mm 150mm;
+            grid-template-rows: auto 1fr;
+            height: 297mm;
+            width: 210mm;
+            overflow: hidden;
+        }
+
+        #cv-preview.layout-triple .cv-header {
+            grid-column: 1 / 3;
+            grid-row: 1;
+            background: transparent;
+            border-bottom: 2px solid var(--cv-primary);
+            padding: 10mm 12mm 4mm 12mm;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        #cv-preview.layout-triple .cv-header h2 {
+            color: var(--cv-primary);
+            font-size: 23px;
+            margin: 0;
+        }
+
+        #cv-preview.layout-triple .cv-header .major {
+            color: #475569;
+            font-size: 14px;
+            margin-top: 3px;
+        }
+
+        #cv-preview.layout-triple .cv-header .header-line {
+            display: none;
+        }
+
+        #cv-preview.layout-triple .cv-sidebar {
+            grid-column: 1;
+            grid-row: 2;
+            background: #f8fafc;
+            border-right: 1px solid #e2e8f0;
+            padding: 8mm 5mm;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        #cv-preview.layout-triple .cv-main {
+            grid-column: 2;
+            grid-row: 2;
+            padding: 8mm 12mm 8mm 8mm;
+            height: 100%;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        #cv-preview.layout-triple .cv-main-section {
+            margin-bottom: 0;
+        }
+
+        /* --- ĐỀ THI VÀ PHONG NỀN THEO NGÀNH NGHỀ (INDUSTRY THEMES) --- */
+        .cv-deco-bg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .cv-header,
+        .cv-sidebar,
+        .cv-main {
+            position: relative;
+            z-index: 1;
+        }
+
+        /* 1. CHỦ ĐỀ: BIZ / FINANCE / MARKETING (Kinh doanh chuyên nghiệp) */
+        .industry-biz {
+            --cv-bg: #fdfdfc;
+        }
+
+        .industry-biz .deco-stripe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 6px;
+            background: linear-gradient(90deg, var(--cv-primary) 0%, #d97706 100%);
+        }
+
+        .industry-biz .deco-grid-lines {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0.02;
+            background: linear-gradient(rgba(0, 0, 0, 0.1) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 0, 0, 0.1) 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
+
+        /* 2. CHỦ ĐỀ: IT / TECH / SYSTEM (Kỹ thuật công nghệ) */
+        .industry-it {
+            --cv-bg: #fafcff;
+        }
+
+        .industry-it .deco-grid-lines {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0.04;
+            background-image: radial-gradient(var(--cv-primary) 1px, transparent 1px);
+            background-size: 14px 14px;
+        }
+
+        .industry-it .cv-sidebar {
+            background: rgba(240, 246, 255, 0.6) !important;
+            border-right: 1.5px solid rgba(14, 165, 233, 0.15) !important;
+        }
+
+        .industry-it .cv-side-title,
+        .industry-it .cv-main-title {
+            border-bottom: 2px dashed var(--cv-primary) !important;
+        }
+
+        /* 3. CHỦ ĐỀ: ART / CREATIVE / DESIGN / MEDIA (Nghệ thuật & Sáng tạo) */
+        .industry-art {
+            --cv-bg: #fffdfd;
+        }
+
+        .industry-art .deco-circle-1 {
+            position: absolute;
+            top: -40px;
+            right: -40px;
+            width: 220px;
+            height: 220px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(236, 72, 153, 0.06) 0%, transparent 70%);
+        }
+
+        .industry-art .deco-circle-2 {
+            position: absolute;
+            bottom: -50px;
+            left: -30px;
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(168, 85, 247, 0.06) 0%, transparent 70%);
+        }
+
+        .industry-art .deco-wave-top {
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 300px;
+            height: 250px;
+            background: radial-gradient(circle at 100% 0%, rgba(251, 146, 60, 0.06), transparent 70%);
+        }
+
+        .industry-art .cv-sidebar {
+            background: rgba(255, 241, 242, 0.4) !important;
+        }
+
+        .industry-art .cv-avatar-container img {
+            border-radius: 16px !important;
+        }
+
+        .industry-art #cv-avatar-wrapper {
+            border-radius: 16px !important;
+        }
+
+        /* 4. CHỦ ĐỀ: MED / HEALTHCARE / SOCIAL (Y tế & Xã hội) */
+        .industry-med {
+            --cv-bg: #fbfcfa;
+        }
+
+        .industry-med .deco-wave-top {
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            width: 100%;
+            height: 180px;
+            background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 320'%3E%3Cpath fill='%230d9488' fill-opacity='0.03' d='M0,224L120,202.7C240,181,480,139,720,138.7C960,139,1200,181,1320,202.7L1440,224L1440,320L1320,320C1200,320,960,320,720,320C480,320,240,320,120,320L0,320Z'%3E%3C/path%3E%3C/svg%3E") no-repeat bottom/cover;
+        }
+
+        .industry-med .deco-circle-1 {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(13, 148, 136, 0.04) 0%, transparent 70%);
+        }
+
+        .industry-med .cv-sidebar {
+            background: rgba(240, 253, 250, 0.5) !important;
+        }
+
+
+        /* STYLE CHO EMAIL XIN VIỆC TAB - GIAO DIỆN PREMIUM EMAIL CLIENT */
+        .email-container {
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 16px;
+            padding: 25px;
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+        }
+
+        .email-app-header {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-bottom: 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            padding-bottom: 12px;
+        }
+
+        .email-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+
+        .email-dot.red {
+            background: #ef4444;
+        }
+
+        .email-dot.yellow {
+            background: #f59e0b;
+        }
+
+        .email-dot.green {
+            background: #10b981;
+        }
+
+        .email-header-info {
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            border-radius: 12px;
+            padding: 18px;
+            margin-bottom: 20px;
+            font-size: 0.9rem;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .email-field {
+            display: flex;
+            align-items: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            padding-bottom: 8px;
+        }
+
+        .email-field:last-child {
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+
+        .email-label {
+            width: 100px;
+            font-weight: 600;
+            color: var(--workspace-text-muted);
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            letter-spacing: 1px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-shrink: 0;
+        }
+
+        .email-value {
+            color: var(--workspace-text);
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
+
+        .email-attachment {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(99, 102, 241, 0.1);
+            border: 1px dashed rgba(99, 102, 241, 0.3);
+            color: #818cf8;
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-top: 5px;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+
+        .email-attachment:hover {
+            background: rgba(99, 102, 241, 0.18);
+            border-color: #6366f1;
+            color: #a5b4fc;
+        }
+
+        .email-body-wrapper {
+            background: rgba(0, 0, 0, 0.25);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 12px;
+            padding: 24px;
+            position: relative;
+        }
+
+        .email-body {
+            font-family: 'Inter', sans-serif;
+            font-size: 0.95rem;
+            line-height: 1.8;
+            color: #cbd5e1;
+            white-space: pre-wrap;
+            background: transparent;
+            border: none;
+            padding: 0;
+            margin: 0;
+            max-height: 400px;
+            overflow-y: auto;
+            text-align: left;
+        }
+
+        .email-body:focus {
+            outline: none;
+        }
+
+        /* STYLE CHO ĐÁNH GIÁ CV TAB */
+        .feedback-container {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .feedback-card {
+            background: rgba(99, 102, 241, 0.05);
+            border: 1px solid rgba(99, 102, 241, 0.15);
+            border-left: 4px solid #6366f1;
+            padding: 16px;
+            border-radius: 8px;
+            color: var(--workspace-text);
+            display: flex;
+            gap: 12px;
+            align-items: flex-start;
+        }
+
+        .feedback-card.warning {
+            background: rgba(245, 158, 11, 0.05);
+            border: 1px solid rgba(245, 158, 11, 0.15);
+            border-left: 4px solid #f59e0b;
+        }
+
+        .feedback-card.success {
+            background: rgba(16, 185, 129, 0.05);
+            border: 1px solid rgba(16, 185, 129, 0.15);
+            border-left: 4px solid #10b981;
+        }
+
+        .feedback-icon {
+            font-size: 1.2rem;
+            line-height: 1;
+        }
+
+        .feedback-text {
+            font-size: 0.9rem;
+            line-height: 1.5;
+            margin: 0;
+        }
+
+        /* Hệ thống Icon Lucide đồng bộ cao cấp */
+        .lucide-inline {
+            width: 15px;
+            height: 15px;
+            stroke-width: 2.25px;
+            vertical-align: -2.5px;
+            margin-right: 4px;
+            display: inline-block;
+        }
+
+        .lucide-panel-icon {
+            width: 18px;
+            height: 18px;
+            stroke-width: 2.25px;
+            vertical-align: -3px;
+            margin-right: 6px;
+            display: inline-block;
+            color: #6366f1;
+        }
+
+        .lucide-h3-icon {
+            width: 18px;
+            height: 18px;
+            stroke-width: 2.25px;
+            vertical-align: -3px;
+            margin-right: 6px;
+            display: inline-block;
+            color: var(--workspace-text-muted);
+        }
+
+        .cv-title-icon {
+            width: 11px;
+            height: 11px;
+            stroke: var(--cv-primary) !important;
+            stroke-width: 2.5px;
+            vertical-align: -1px;
+            margin-right: 4px;
+            display: inline-block;
+        }
+    </style>
+</head>
+
+<body>
+
+    <header class="app-header">
+        <div class="brand-section">
+            <h1>
+                <img src="logo.png?v=2" alt="Trường Cao đẳng Miền Đông"
+                    style="height: 55px; width: 55px; object-fit: cover; vertical-align: middle; border-radius: 50%; background-color: #ffffff; padding: 2px; box-shadow: 0 4px 10px rgba(0,0,0,0.15);">
+                <span>AI CV Builder</span>
+            </h1>
+            <p>Trường Cao đẳng Miền Đông</p>
+        </div>
+
+        <!-- Workspace Theme Selector -->
+        <div class="theme-selector-container">
+            <span class="theme-selector-label">Giao diện web:</span>
+            <div class="theme-toggle-buttons">
+                <button class="theme-toggle-btn active" onclick="setWorkspaceTheme('midnight', this)"><i
+                        data-lucide="moon" class="lucide-inline"></i> Tối</button>
+                <button class="theme-toggle-btn" onclick="setWorkspaceTheme('alabaster', this)"><i data-lucide="sun"
+                        class="lucide-inline"></i> Sáng</button>
+                <button class="theme-toggle-btn" onclick="setWorkspaceTheme('neon', this)"><i data-lucide="zap"
+                        class="lucide-inline"></i> Neon</button>
+                <button class="theme-toggle-btn" onclick="setWorkspaceTheme('sunset', this)"><i data-lucide="sunset"
+                        class="lucide-inline"></i> Sunset</button>
+            </div>
+        </div>
+    </header>
+
+    <!-- BANNER GIỚI THIỆU SÁNG TẠO -->
+    <div class="intro-banner" id="intro-banner">
+        <!-- Nút Ẩn Banner -->
+        <span onclick="document.getElementById('intro-banner').style.display='none'"
+            style="position: absolute; top: 15px; right: 20px; font-size: 1.5rem; cursor: pointer; color: var(--workspace-text-muted); line-height: 1; transition: color 0.2s;"
+            onmouseover="this.style.color='var(--workspace-title)'"
+            onmouseout="this.style.color='var(--workspace-text-muted)'">×</span>
+        <div class="intro-content">
+            <div class="intro-badge">Đề Tài Đạt Giải Cuộc Thi Sáng Tạo 2026</div>
+            <h2 class="intro-title">Xây dựng hệ thống AI hỗ trợ tạo CV và hồ sơ xin việc thông minh cho Học sinh - Sinh
+                viên</h2>
+            <p class="intro-desc">
+                Sản phẩm ứng dụng mô hình trí tuệ nhân tạo Gemini tiên tiến, tích hợp 4 lõi chức năng cốt lõi: Tự động
+                hóa thiết kế CV chuẩn ATS, gợi ý lộ trình kỹ năng bổ trợ theo ngành học, tạo email/thư ứng tuyển thuyết
+                phục, và đánh giá phản biện hồ sơ toàn diện giúp nâng cao khả năng chuyển đổi số định hướng nghề nghiệp
+                HSSV.
+            </p>
+            <div class="intro-features">
+                <span class="intro-feat-badge"><i data-lucide="file-check" class="lucide-inline"></i> Tạo CV chuẩn
+                    ATS</span>
+                <span class="intro-feat-badge"><i data-lucide="lightbulb" class="lucide-inline"></i> Gợi ý kỹ năng
+                    ngành</span>
+                <span class="intro-feat-badge"><i data-lucide="mail" class="lucide-inline"></i> Viết Email ứng
+                    tuyển</span>
+                <span class="intro-feat-badge"><i data-lucide="search" class="lucide-inline"></i> AI Nhận xét & Sửa
+                    đổi</span>
+                <span class="intro-feat-badge"><i data-lucide="download" class="lucide-inline"></i> Xuất PDF cao
+                    cấp</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="workspace">
+        <!-- CỘT TRÁI: FORM NHẬP LIỆU -->
+        <div class="panel">
+            <!-- Loading Overlay -->
+            <div id="loading-overlay" class="loading-overlay">
+                <div class="spinner"></div>
+                <div id="loading-text" class="loading-text">Đang gửi thông tin cho chuyên gia trí tuệ nhân tạo Gemini
+                    phân tích và thiết kế nội dung... Vui lòng đợi trong giây lát!</div>
+            </div>
+
+            <div class="panel-title">
+                <span><i data-lucide="clipboard-list" class="lucide-panel-icon"></i> Nhập liệu Hồ sơ</span>
+                <div style="display: flex; gap: 8px;">
+                    <button class="btn-secondary" onclick="loadSampleData()"><i data-lucide="database-backup"
+                            class="lucide-inline"></i> Tải Dữ Liệu Mẫu</button>
+                    <button id="btn-load-saved" class="btn-secondary" style="display: none;"
+                        onclick="loadSavedData()"><i data-lucide="history" class="lucide-inline"></i> Dùng Dữ Liệu Đã
+                        Lưu</button>
+                </div>
+            </div>
+
+            <div class="api-box" id="api-key-box" style="display: none;">
+                <label><i data-lucide="key-round" class="lucide-inline"
+                        style="color: #fbbf24; vertical-align: -2px;"></i> Nhập Gemini API Key của bạn:</label>
+                <input type="password" id="apiKey" placeholder="Nhập API Key bắt đầu bằng AIzaSy...">
+                <small style="color: #fbbf24; font-size: 0.8rem; display: block; margin-top: 6px;">
+                    * Bắt buộc. Vui lòng cung cấp mã API để kích hoạt lõi tối ưu hóa CV bằng AI.
+                </small>
+                <small style="color: var(--workspace-text-muted); font-size: 0.8rem; display: block; margin-top: 6px;">
+                    * Bạn chưa có khóa? <a href="https://aistudio.google.com/" target="_blank"
+                        style="color: #818cf8; text-decoration: underline; font-weight: 600;">Click vào đây để lấy API
+                        Key miễn phí từ Google</a> (chỉ mất 30 giây).
+                </small>
+            </div>
+
+            <!-- Thông tin cá nhân -->
+            <h3
+                style="color: var(--workspace-text); margin-top: 0; margin-bottom: 15px; border-bottom: 1px solid var(--workspace-border); padding-bottom: 8px; font-size: 1.1rem; display: flex; align-items: center; gap: 4px;">
+                <i data-lucide="user" class="lucide-h3-icon"></i> Thông tin cá nhân</h3>
+
+            <div class="form-row">
+                <div class="form-group" style="grid-column: span 2;">
+                    <label>Ảnh đại diện:</label>
+                    <div style="display: flex; gap: 15px; align-items: center;">
+                        <div id="avatar-input-preview"
+                            style="width: 50px; height: 50px; border-radius: 50%; background: rgba(255,255,255,0.05); border: 1px solid var(--workspace-border); display: flex; align-items: center; justify-content: center; overflow: hidden; flex-shrink: 0;">
+                            <i data-lucide="user"
+                                style="width: 24px; height: 24px; color: var(--workspace-text-muted);"></i>
+                        </div>
+                        <div style="display: flex; gap: 8px;">
+                            <input type="file" id="avatar-file" accept="image/*" style="display: none;"
+                                onchange="uploadAvatar(this)">
+                            <button type="button" class="btn-secondary"
+                                style="width: auto; padding: 8px 12px; margin: 0; font-size: 0.8rem;"
+                                onclick="document.getElementById('avatar-file').click()"><i data-lucide="image"
+                                    class="lucide-inline"></i> Chọn ảnh</button>
+                            <button type="button" class="btn-secondary"
+                                style="width: auto; padding: 8px 12px; margin: 0; font-size: 0.8rem; color: #f87171; border-color: rgba(248,113,113,0.2);"
+                                onclick="removeAvatar()"><i data-lucide="trash-2" class="lucide-inline"
+                                    style="color: #f87171;"></i> Xóa ảnh</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Họ và tên:</label>
+                    <input type="text" id="name" placeholder="Ví dụ: NGUYỄN VĂN A" oninput="syncPreview()">
+                </div>
+                <div class="form-group">
+                    <label>Ngành học / Vị trí hướng tới:</label>
+                    <input type="text" id="major" placeholder="Ví dụ: Thực tập sinh Digital Marketing"
+                        oninput="syncPreview()">
+
+                    <!-- 4.2. GỢI Ý NHANH KỸ NĂNG THEO NGÀNH -->
+                    <div class="quick-sectors">
+                        <span class="sector-tag" onclick="selectQuickMajor('it')"><i data-lucide="terminal"
+                                class="lucide-inline"></i> Công nghệ thông tin (IT)</span>
+                        <span class="sector-tag" onclick="selectQuickMajor('marketing')"><i data-lucide="trending-up"
+                                class="lucide-inline"></i> Digital Marketing</span>
+                        <span class="sector-tag" onclick="selectQuickMajor('accounting')"><i data-lucide="briefcase"
+                                class="lucide-inline"></i> Kế toán / Tài chính</span>
+                        <span class="sector-tag" onclick="selectQuickMajor('design')"><i data-lucide="palette"
+                                class="lucide-inline"></i> Thiết kế đồ họa</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Địa chỉ Email:</label>
+                    <input type="email" id="email" placeholder="Ví dụ: nguyenvana@gmail.com" oninput="syncPreview()">
+                </div>
+                <div class="form-group">
+                    <label>Số điện thoại:</label>
+                    <input type="text" id="phone" placeholder="Ví dụ: 0987.654.321" oninput="syncPreview()">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Địa chỉ hiện tại:</label>
+                <input type="text" id="address" placeholder="Ví dụ: Quận 1, TP. Hồ Chí Minh" oninput="syncPreview()">
+            </div>
+
+            <!-- Dữ liệu thô gửi cho AI -->
+            <h3
+                style="color: var(--workspace-text); margin-top: 25px; margin-bottom: 15px; border-bottom: 1px solid var(--workspace-border); padding-bottom: 8px; font-size: 1.1rem; display: flex; align-items: center; gap: 4px;">
+                <i data-lucide="database" class="lucide-h3-icon" style="color: #a855f7;"></i> Dữ liệu thô gửi cho AI
+                trau chuốt</h3>
+
+            <div class="form-group">
+                <label>1. Mục tiêu nghề nghiệp:</label>
+                <textarea id="goal"
+                    placeholder="Ví dụ: Em muốn làm marketing thực tế, học hỏi kinh nghiệm, giúp công ty tăng doanh thu."></textarea>
+            </div>
+
+            <div class="form-group">
+                <label>2. Kỹ năng cá nhân:</label>
+                <textarea id="skills"
+                    placeholder="Ví dụ: biết dùng canva thiết kế ảnh cơ bản, viết bài facebook, nói tiếng anh ổn, làm việc nhóm tốt"></textarea>
+            </div>
+
+            <div class="form-group">
+                <label>3. Kinh nghiệm làm việc & Hoạt động:</label>
+                <textarea style="height: 120px;" id="experience"
+                    placeholder="Ví dụ:
+- Làm phục vụ quán cà phê 3 tháng: bê đồ uống, tiếp khách, dọn bàn.
+- Trưởng ban truyền thông câu lạc bộ trường: viết nội dung cho trang facebook CLB, thiết kế ảnh đăng bài thu hút được đông đảo sinh viên tương tác."></textarea>
+            </div>
+
+            <div class="form-group">
+                <label>4. Học vấn & Trình độ giáo dục:</label>
+                <textarea style="height: 90px;" id="education" placeholder="Ví dụ:
+- Học sinh Đại học Kinh tế Quốc dân ngành Marketing năm 2, điểm trung bình tích lũy 3.2.
+- Học sinh THPT chuyên Ngoại ngữ, đạt giải Nhì cấp thành phố môn tiếng Anh năm lớp 11."></textarea>
+            </div>
+
+            <div class="form-group">
+                <label>5. Dự án cá nhân hoặc tiêu biểu:</label>
+                <textarea style="height: 90px;" id="projects" placeholder="Ví dụ:
+- Làm dự án xây dựng ứng dụng chat nhóm 4 người bằng ReactJS, trực tiếp viết mã giao diện và xử lý gọi tin nhắn real-time.
+- Tham gia dự án nghiên cứu môi trường xanh của câu lạc bộ, xây dựng báo cáo chuyên đề và slide trình bày."></textarea>
+            </div>
+
+            <div class="form-group">
+                <label>6. Chứng chỉ & Ngoại ngữ:</label>
+                <textarea style="height: 80px;" id="certificates" placeholder="Ví dụ:
+- IELTS 6.5, tiếng Trung giao tiếp cơ bản.
+- Chứng chỉ hoàn thành khóa học Google Analytics, Giải Ba học sinh giỏi môn Văn cấp tỉnh."></textarea>
+            </div>
+
+            <button class="btn-primary" onclick="generateAICV()"><i data-lucide="wand-2" class="lucide-inline"
+                    style="stroke-width: 2.5px;"></i> AI Tối Ưu & Tạo CV Chuyên Nghiệp</button>
+        </div>
+
+        <!-- CỘT PHẢI: KẾT QUẢ DÀNH CHO KHÁCH HÀNG (DỰA TRÊN TABS) -->
+        <div style="display: flex; flex-direction: column; gap: 24px; width: 100%;">
+            <div class="panel"
+                style="overflow: visible; border-top: 4px solid transparent; background-clip: padding-box; position: relative; margin: 0;">
+                <!-- Hệ thống Tab phân chia chức năng -->
+                <div class="workspace-tabs">
+                    <button class="tab-btn active" onclick="switchResultTab('cv-preview-tab', this)"><i
+                            data-lucide="file-text" class="lucide-inline"></i> Bản CV A4</button>
+                    <button class="tab-btn" onclick="switchResultTab('email-tab', this)"><i data-lucide="mail-open"
+                            class="lucide-inline"></i> Thư Ứng Tuyển</button>
+                    <button class="tab-btn" onclick="switchResultTab('review-tab', this)"><i data-lucide="shield-alert"
+                            class="lucide-inline"></i> Đánh Giá CV Sẵn Có</button>
+                </div>
+
+                <!-- TAB 1: BẢN CV A4 PREVIEW -->
+                <div id="cv-preview-tab" class="tab-content active">
+                    <!-- Toolbar Tùy Chỉnh Style CV -->
+                    <div class="cv-controls">
+                        <div class="cv-opt-section">
+                            <span class="cv-opt-label">Màu sắc:</span>
+                            <div class="color-pickers">
+                                <div class="color-dot active" style="background: #1e3a8a;"
+                                    onclick="setCVColor('#1e3a8a', this)"></div>
+                                <div class="color-dot" style="background: #0ea5e9;"
+                                    onclick="setCVColor('#0ea5e9', this)"></div>
+                                <div class="color-dot" style="background: #be185d;"
+                                    onclick="setCVColor('#be185d', this)"></div>
+                                <div class="color-dot" style="background: #0d9488;"
+                                    onclick="setCVColor('#0d9488', this)"></div>
+                                <div class="color-dot" style="background: #1f2937;"
+                                    onclick="setCVColor('#1f2937', this)"></div>
+                                <!-- Bảng màu tùy chọn nâng cao -->
+                                <div class="color-dot" id="custom-color-dot"
+                                    style="background: linear-gradient(135deg, #ff0000 0%, #00ff00 50%, #0000ff 100%); position: relative;"
+                                    title="Chọn màu tùy chỉnh">
+                                    <input type="color" id="cv-custom-color-picker"
+                                        oninput="setCustomCVColor(this.value)" onchange="setCustomCVColor(this.value)"
+                                        style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; border: none; padding: 0; border-radius: 50%;">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="cv-opt-section">
+                            <span class="cv-opt-label">Phông chữ:</span>
+                            <div class="font-selector">
+                                <div class="font-tab active" onclick="setCVFont('Times New Roman', this)">Times New
+                                    Roman</div>
+                                <div class="font-tab" onclick="setCVFont('Inter', this)">Inter</div>
+                                <div class="font-tab" onclick="setCVFont('Outfit', this)">Outfit</div>
+                                <div class="font-tab" onclick="setCVFont('Lora', this)">Lora</div>
+                            </div>
+                        </div>
+
+                        <div class="cv-opt-section">
+                            <span class="cv-opt-label">Phong nền:</span>
+                            <select id="cv-industry-select" onchange="setCVIndustry(this.value)"
+                                style="padding: 6px 12px; font-size: 0.8rem; background: rgba(255,255,255,0.04); border: 1px solid var(--workspace-border); border-radius: 8px; color: var(--workspace-text); outline: none; cursor: pointer; font-weight: 600;">
+                                <option value="biz">💼 Kinh doanh / Kế toán</option>
+                                <option value="it">💻 Công nghệ / Kỹ thuật</option>
+                                <option value="art">🎨 Sáng tạo / Thiết kế</option>
+                                <option value="med">🩺 Y tế / Điều dưỡng</option>
+                            </select>
+                        </div>
+
+                        <div class="cv-opt-section">
+                            <span class="cv-opt-label">Bố cục:</span>
+                            <select id="cv-layout-select" onchange="setCVLayout(this.value)"
+                                style="padding: 6px 12px; font-size: 0.8rem; background: rgba(255,255,255,0.04); border: 1px solid var(--workspace-border); border-radius: 8px; color: var(--workspace-text); outline: none; cursor: pointer; font-weight: 600;">
+                                <option value="executive">👔 Bố cục Executive Elite</option>
+                                <option value="elegant">✨ Bố cục Elegant Modern</option>
+                                <option value="creative">🎨 Bố cục Creative Horizon</option>
+                                <option value="tech">💻 Bố cục Tech ATS Pro</option>
+                                <option value="card">🎴 Bố cục Card Deluxe</option>
+                                <option value="triple">🏛️ Bố cục Columnar Pro</option>
+                            </select>
+                        </div>
+
+                        <button class="btn-pdf" onclick="exportPDF()"><i data-lucide="file-down"
+                                class="lucide-inline"></i> Tải PDF</button>
+                    </div>
+
+                    <!-- Khung giấy A4 giả lập -->
+                    <div class="cv-preview-container">
+                        <div class="cv-preview-scale-wrapper" id="cv-preview-scale-wrapper">
+                            <div id="cv-preview" class="layout-executive industry-biz">
+                                <!-- Background Decoration Elements -->
+                                <div class="cv-deco-bg">
+                                    <div class="deco-wave-top"></div>
+                                    <div class="deco-circle-1"></div>
+                                    <div class="deco-circle-2"></div>
+                                    <div class="deco-grid-lines"></div>
+                                    <div class="deco-stripe"></div>
+                                </div>
+
+                                <!-- CV Header (Direct child of grid layout) -->
+                                <div class="cv-header">
+                                    <h2 id="out-name">NGUYỄN VĂN A</h2>
+                                    <div id="out-major" class="major">Thực Tập Sinh Digital Marketing</div>
+                                    <div class="header-line"></div>
+                                </div>
+
+                                <!-- Left Sidebar Column -->
+                                <div class="cv-sidebar">
+                                    <!-- Avatar Block -->
+                                    <div class="cv-avatar-container">
+                                        <div id="cv-avatar-wrapper">
+                                            <img id="cv-avatar-img" src=""
+                                                style="display: none; width: 100%; height: 100%; object-fit: cover;">
+                                            <div id="cv-avatar-placeholder"><i data-lucide="user-round"
+                                                    style="width: 40px; height: 40px; color: #94a3b8; stroke-width: 1.5;"></i>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Contact Section -->
+                                    <div class="cv-side-section">
+                                        <div class="cv-side-title"><i data-lucide="phone" class="cv-title-icon"></i>
+                                            Liên hệ</div>
+                                        <div class="cv-contact-vertical">
+                                            <div id="out-email-box">
+                                                <svg viewBox="0 0 24 24">
+                                                    <path
+                                                        d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z" />
+                                                </svg>
+                                                <span id="out-email">nguyenvana@gmail.com</span>
+                                            </div>
+                                            <div id="out-phone-box">
+                                                <svg viewBox="0 0 24 24">
+                                                    <path
+                                                        d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z" />
+                                                </svg>
+                                                <span id="out-phone">0987.654.321</span>
+                                            </div>
+                                            <div id="out-address-box">
+                                                <svg viewBox="0 0 24 24">
+                                                    <path
+                                                        d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" />
+                                                </svg>
+                                                <span id="out-address">Quận 1, TP. Hồ Chí Minh</span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Skills Section -->
+                                    <div class="cv-side-section">
+                                        <div class="cv-side-title"><i data-lucide="wrench" class="cv-title-icon"></i> Kỹ
+                                            năng</div>
+                                        <ul id="out-skills" class="cv-skills-list-vertical">
+                                            <li class="skill-badge-vertical">Thiết kế ấn phẩm truyền thông (Canva,
+                                                CapCut)</li>
+                                            <li class="skill-badge-vertical">Sáng tạo nội dung (Content Writing,
+                                                Copywriting)</li>
+                                            <li class="skill-badge-vertical">Tiếng Anh giao tiếp công việc (B2/IELTS
+                                                6.5)</li>
+                                            <li class="skill-badge-vertical">Làm việc nhóm & Kỹ năng cộng tác trực tuyến
+                                            </li>
+                                        </ul>
+                                    </div>
+
+                                    <!-- Languages Section -->
+                                    <div class="cv-side-section" id="out-languages-section">
+                                        <div class="cv-side-title"><i data-lucide="languages" class="cv-title-icon"></i>
+                                            Ngoại ngữ</div>
+                                        <ul id="out-languages" class="cv-skills-list-vertical">
+                                            <li class="skill-badge-vertical">Tiếng Việt (Bản xứ)</li>
+                                            <li class="skill-badge-vertical">Tiếng Anh (B2 / IELTS 6.5)</li>
+                                        </ul>
+                                    </div>
+
+                                    <!-- Certificates Section -->
+                                    <div class="cv-side-section" id="out-certificates-section">
+                                        <div class="cv-side-title"><i data-lucide="award" class="cv-title-icon"></i>
+                                            Chứng chỉ</div>
+                                        <div id="out-certificates">
+                                            <div class="cert-item-vertical">
+                                                <span
+                                                    style="color: var(--cv-primary); font-weight: 700; margin-right: 5px;">✓</span>
+                                                <span>Chứng chỉ Google Digital Garage</span>
+                                            </div>
+                                            <div class="cert-item-vertical">
+                                                <span
+                                                    style="color: var(--cv-primary); font-weight: 700; margin-right: 5px;">✓</span>
+                                                <span>Giải Ba HSG Cấp Tỉnh môn Anh</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Right Main Column -->
+                                <div class="cv-main">
+
+                                    <!-- Goal -->
+                                    <div class="cv-main-section">
+                                        <div class="cv-main-title"><i data-lucide="target" class="cv-title-icon"></i>
+                                            Mục tiêu nghề nghiệp</div>
+                                        <div id="out-goal" class="cv-goal">
+                                            Đam mê lĩnh vực tiếp thị số, mong muốn được học hỏi và cọ xát thực tiễn với
+                                            các chiến dịch đa kênh chuyên nghiệp. Định hướng đóng góp năng lực sáng tạo
+                                            nội dung và khả năng tư duy phân tích nhạy bén nhằm tối ưu hóa tỷ lệ chuyển
+                                            đổi và gia tăng sức ảnh hưởng thương hiệu của doanh nghiệp.
+                                        </div>
+                                    </div>
+
+                                    <!-- Education Section -->
+                                    <div class="cv-main-section" id="out-education-section">
+                                        <div class="cv-main-title"><i data-lucide="graduation-cap"
+                                                class="cv-title-icon"></i> Học vấn & Giáo dục</div>
+                                        <div id="out-education">
+                                            <div class="cv-exp-item">
+                                                <div class="cv-exp-header">
+                                                    <span class="cv-exp-org">TRƯỜNG ĐẠI HỌC KINH TẾ TP.HCM</span>
+                                                    <span class="cv-exp-time">2023 - Hiện tại</span>
+                                                </div>
+                                                <div
+                                                    style="font-style: italic; font-size: 13px; color: #4b5563; margin-bottom: 5px;">
+                                                    Chuyên ngành Thương mại điện tử - Khóa 49</div>
+                                                <ul class="cv-exp-desc">
+                                                    <li>Điểm trung bình học tập tích lũy (GPA): 3.4/4.0</li>
+                                                    <li>Đạt học bổng Khuyến khích học tập học kỳ I năm học 2024 - 2025.
+                                                    </li>
+                                                </ul>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Experience -->
+                                    <div class="cv-main-section">
+                                        <div class="cv-main-title"><i data-lucide="briefcase" class="cv-title-icon"></i>
+                                            Kinh nghiệm & Hoạt động</div>
+                                        <div id="out-experience">
+                                            <div class="cv-exp-item">
+                                                <div class="cv-exp-header">
+                                                    <span class="cv-exp-org">CÂU LẠC BỘ TRUYỀN THÔNG TRƯỜNG ĐẠI
+                                                        HỌC</span>
+                                                    <span class="cv-exp-time">09/2025 - Hiện tại</span>
+                                                </div>
+                                                <div
+                                                    style="font-style: italic; font-size: 13px; color: #4b5563; margin-bottom: 5px;">
+                                                    Trưởng Ban Sáng Tạo Nội Dung</div>
+                                                <ul class="cv-exp-desc">
+                                                    <li>Quản lý và định hướng kế hoạch đăng bài hàng tuần trên Fanpage
+                                                        chính thức, thu hút hơn 2,000 lượt tương tác tự nhiên mỗi tuần.
+                                                    </li>
+                                                    <li>Phối hợp cùng đội ngũ đồ họa lên ý tưởng và trực tiếp sử dụng
+                                                        Canva thiết kế các bộ ấn phẩm hình ảnh đạt chuẩn nhận diện
+                                                        thương hiệu.</li>
+                                                </ul>
+                                            </div>
+                                            <div class="cv-exp-item">
+                                                <div class="cv-exp-header">
+                                                    <span class="cv-exp-org">THE COFFEE HOUSE</span>
+                                                    <span class="cv-exp-time">05/2025 - 08/2025</span>
+                                                </div>
+                                                <div
+                                                    style="font-style: italic; font-size: 13px; color: #4b5563; margin-bottom: 5px;">
+                                                    Nhân Viên Phục Vụ & Chăm Sóc Khách Hàng</div>
+                                                <ul class="cv-exp-desc">
+                                                    <li>Đảm nhận tiếp nhận yêu cầu và cung cấp dịch vụ ẩm thực chu đáo,
+                                                        chuyên nghiệp cho hơn 150 lượt khách mỗi ca làm việc.</li>
+                                                    <li>Giải quyết linh hoạt, lịch thiệp các phản hồi của khách hàng,
+                                                        duy trì tỷ lệ hài lòng cao và củng cố văn hóa thương hiệu.</li>
+                                                </ul>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Projects -->
+                                    <div class="cv-main-section" id="out-projects-section">
+                                        <div class="cv-main-title"><i data-lucide="folder-git2"
+                                                class="cv-title-icon"></i> Dự án tiêu biểu</div>
+                                        <div id="out-projects">
+                                            <div class="cv-exp-item">
+                                                <div class="cv-exp-header">
+                                                    <span class="cv-exp-org">DỰ ÁN XÂY DỰNG KÊNH TIKTOK THƯƠNG HIỆU
+                                                        MẪU</span>
+                                                    <span class="cv-exp-time">10/2025 - 12/2025</span>
+                                                </div>
+                                                <div
+                                                    style="font-style: italic; font-size: 13px; color: #4b5563; margin-bottom: 5px;">
+                                                    Dự án môn học nghiên cứu Hành vi người tiêu dùng</div>
+                                                <ul class="cv-exp-desc">
+                                                    <li>Đóng vai Trưởng nhóm 5 người, nghiên cứu xu hướng kịch bản video
+                                                        thu hút 15,000 lượt xem tự nhiên trong vòng 1 tháng.</li>
+                                                    <li>Đạt điểm số xuất sắc 9.5/10 từ giảng viên bộ môn.</li>
+                                                </ul>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TAB 2: THƯ XIN VIỆC & EMAIL -->
+                <div id="email-tab" class="tab-content">
+                    <div class="email-container">
+                        <!-- Header thanh giả lập App Email -->
+                        <div class="email-app-header">
+                            <span class="email-dot red"></span>
+                            <span class="email-dot yellow"></span>
+                            <span class="email-dot green"></span>
+                            <span
+                                style="font-size: 0.8rem; color: var(--workspace-text-muted); font-weight: 600; margin-left: 10px; text-transform: uppercase; letter-spacing: 0.5px;">Hộp
+                                thư ứng tuyển giả lập</span>
+                        </div>
+
+                        <!-- Tiêu đề và nút thao tác nhanh -->
+                        <div style="margin-bottom: 20px;">
+                            <div
+                                style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                                <h3
+                                    style="color: var(--workspace-text); margin: 0; display: flex; align-items: center; gap: 8px; font-size: 1.1rem;">
+                                    <i data-lucide="mail" class="lucide-panel-icon"></i> Thư Ứng Tuyển &amp; Email Gửi
+                                    Nhà Tuyển Dụng</h3>
+                                <div style="display: flex; gap: 8px;">
+                                    <button class="btn-secondary"
+                                        style="width: auto; padding: 8px 14px; margin: 0; font-size: 0.85rem;"
+                                        onclick="copyCoverLetter()"><i data-lucide="copy" class="lucide-inline"></i> Sao
+                                        chép</button>
+                                    <button class="btn-secondary"
+                                        style="width: auto; padding: 8px 14px; margin: 0; font-size: 0.85rem;"
+                                        onclick="downloadCoverLetter()"><i data-lucide="download"
+                                            class="lucide-inline"></i> Tải .txt</button>
+                                </div>
+                            </div>
+                            <button id="btn-generate-email" class="btn-primary" onclick="generateEmailOnly()"
+                                style="width: 100%; padding: 13px 20px; font-size: 0.95rem; font-weight: 700; letter-spacing: 0.3px; display: flex; align-items: center; justify-content: center; gap: 10px;">
+                                <i data-lucide="sparkles" class="lucide-inline" style="stroke-width: 2.5px;"></i>
+                                Viết Email Ứng Tuyển Xin Việc bằng AI
+                            </button>
+                        </div>
+
+                        <!-- Thông tin người nhận, tiêu đề, tệp đính kèm -->
+                        <div class="email-header-info">
+                            <div class="email-field">
+                                <span class="email-label"><i data-lucide="user" class="lucide-inline"></i> Người
+                                    gửi:</span>
+                                <span class="email-value" id="email-sender-val" style="color: #818cf8;">Ứng viên tài
+                                    năng</span>
+                            </div>
+                            <div class="email-field">
+                                <span class="email-label"><i data-lucide="send" class="lucide-inline"></i> Đến:</span>
+                                <span class="email-value">Bộ phận Tuyển dụng nhân sự (HR Department)</span>
+                            </div>
+                            <div class="email-field">
+                                <span class="email-label"><i data-lucide="bookmark" class="lucide-inline"></i> Tiêu
+                                    đề:</span>
+                                <span class="email-value" id="out-email-subject">Ứng tuyển [Vị trí] - [Tên của
+                                    bạn]</span>
+                            </div>
+                            <div class="email-field" style="border-bottom: none; padding-bottom: 0;">
+                                <span class="email-label"><i data-lucide="paperclip" class="lucide-inline"></i> Đính
+                                    kèm:</span>
+                                <span class="email-attachment" onclick="exportPDF()"><i data-lucide="file-text"
+                                        style="width: 13px; height: 13px;"></i> <span
+                                        id="email-attachment-name">CV_Ứng_Tuyển.pdf</span></span>
+                            </div>
+                        </div>
+
+                        <!-- Thân thư xin việc -->
+                        <div class="email-body-wrapper">
+                            <pre id="out-coverletter" class="email-body" contenteditable="true">Kính gửi Bộ phận Tuyển dụng,
+
+Tôi viết thư này để bày tỏ mong muốn ứng cử vào vị trí Thực Tập Sinh Digital Marketing tại Quý công ty. Với thế mạnh sáng tạo và đam mê truyền thông kỹ thuật số, tôi tin mình sẽ đóng góp giá trị cho sự phát triển của đội ngũ.
+
+Trong quá trình hoạt động truyền thông tại trường, tôi đã có kinh nghiệm lên kế hoạch và quản trị nội dung fanpage đạt tương tác tự nhiên ấn tượng, đồng thời thuần thục việc thiết kế ấn phẩm bằng Canva. Những trải nghiệm phục vụ tại The Coffee House cũng rèn luyện cho tôi kỹ năng thấu hiểu khách hàng và giải quyết tình huống lịch sự dưới áp lực cao.
+
+Tôi rất mong có cơ hội trao đổi trực tiếp trong buổi phỏng vấn để làm rõ hơn khả năng đóng góp của mình. Cảm ơn Quý công ty đã dành thời gian xem xét hồ sơ.
+
+Trân trọng,
+Nguyễn Văn A</pre>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TAB 3: ĐÁNH GIÁ CV SẴN CÓ QUA HÌNH ẢNH / LINK -->
+                <div id="review-tab" class="tab-content" style="padding: 10px 0;">
+                    <div class="email-container"
+                        style="background: rgba(255, 255, 255, 0.01); border: 1px solid var(--workspace-border); border-radius: 12px; padding: 20px;">
+                        <h3
+                            style="color: var(--workspace-title); margin-top: 0; margin-bottom: 8px; display: flex; align-items: center; gap: 8px; font-size: 1.15rem;">
+                            <i data-lucide="shield-check" style="color: #6366f1;"></i> AI Đánh Giá CV Sẵn Có (Qua Hình
+                            Ảnh/Link)
+                        </h3>
+                        <p
+                            style="color: var(--workspace-text-muted); font-size: 0.85rem; margin-bottom: 15px; line-height: 1.5;">
+                            Tải lên ảnh chụp CV hoặc dán link ảnh CV để chuyên gia AI phân tích lỗi, đánh giá bố cục và
+                            đề xuất sửa đổi chi tiết.
+                        </p>
+
+                        <div class="form-group" style="margin-bottom: 15px;">
+                            <label for="review-image-url" style="font-size: 0.9rem; font-weight: 500;"><i
+                                    data-lucide="link" class="lucide-inline" style="width: 14px; height: 14px;"></i>
+                                Đường dẫn ảnh CV:</label>
+                            <input type="text" id="review-image-url" placeholder="Nhập link ảnh CV tại đây..."
+                                oninput="previewReviewImageUrl()">
+                        </div>
+
+                        <div
+                            style="display: flex; align-items: center; gap: 12px; margin-bottom: 15px; flex-wrap: wrap;">
+                            <span style="color: var(--workspace-text-muted); font-size: 0.85rem;">Hoặc:</span>
+                            <input type="file" id="review-image-file" accept="image/*"
+                                onchange="handleReviewImageUpload(this)" style="display: none;">
+                            <button class="btn-secondary" onclick="document.getElementById('review-image-file').click()"
+                                style="width: auto; margin: 0; padding: 8px 16px; font-size: 0.85rem; display: inline-flex; align-items: center; gap: 6px;">
+                                <i data-lucide="upload" class="lucide-inline" style="width: 14px; height: 14px;"></i>
+                                Tải ảnh lên từ máy
+                            </button>
+                            <span id="review-upload-status"
+                                style="color: #10b981; font-size: 0.8rem; font-weight: 500;"></span>
+                        </div>
+
+                        <!-- Preview khung ảnh CV -->
+                        <div id="review-preview-box"
+                            style="margin-bottom: 15px; display: none; text-align: center; border: 1px dashed var(--workspace-border); border-radius: 8px; padding: 10px; background: rgba(0, 0, 0, 0.2);">
+                            <p style="color: var(--workspace-text-muted); font-size: 0.75rem; margin: 0 0 8px 0;">Ảnh CV
+                                xem trước:</p>
+                            <img id="review-preview-img" src="" alt="CV Preview"
+                                style="max-width: 100%; max-height: 250px; border-radius: 4px; box-shadow: 0 2px 10px rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.08);">
+                        </div>
+
+                        <!-- Nút bấm đánh giá -->
+                        <button class="btn-primary" onclick="analyzeCVImage()"
+                            style="margin-bottom: 20px; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 12px 20px; font-size: 0.95rem;">
+                            <i data-lucide="sparkles" style="stroke-width: 2.5px; width: 16px; height: 16px;"></i> Bắt
+                            đầu AI Đánh Giá CV
+                        </button>
+
+                        <!-- Kết quả đánh giá từ AI -->
+                        <div id="review-result-box"
+                            style="display: none; border-top: 1px solid var(--workspace-border); padding-top: 15px;">
+                            <h4
+                                style="color: var(--workspace-title); margin-top: 0; margin-bottom: 12px; font-size: 1.05rem; display: flex; align-items: center; gap: 6px;">
+                                <i data-lucide="message-square-text"
+                                    style="color: #10b981; width: 16px; height: 16px;"></i> Nhận Xét &amp; Đề Xuất Sửa
+                                Lỗi
+                            </h4>
+                            <div id="review-result-content" class="feedback-container"
+                                style="display: flex; flex-direction: column; gap: 10px;">
+                                <!-- Các thẻ feedback sẽ được render ở đây -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- AI DANH GIA CV - SECTION CO DINH RIENG BIET BEN DUOI TAB -->
+            <div class="panel" style="overflow: visible; display: none;">
+                <h3
+                    style="color: var(--workspace-text); margin-top: 0; margin-bottom: 6px; display: flex; align-items: center; gap: 8px; font-size: 1.1rem;">
+                    <i data-lucide="shield-check" class="lucide-h3-icon" style="color: #6366f1;"></i>
+                    AI Đánh Giá &amp; Gợi Ý Cải Thiện CV
+                </h3>
+                <p style="color: var(--workspace-text-muted); font-size: 0.85rem; margin: 0 0 16px;">* Kết quả AI đánh
+                    giá sẽ hiển thị tại đây sau khi bấm <strong>AI Tối Ưu &amp; Tạo CV</strong>:</p>
+                <div id="out-feedback" class="feedback-container"
+                    style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px;">
+                    <div class="feedback-card success">
+                        <i data-lucide="check-circle-2"
+                            style="color: #10b981; flex-shrink: 0; width: 18px; height: 18px;"></i>
+                        <p class="feedback-text"><strong>&#272;i&#7875;m m&#7841;nh:</strong> Tr&#236;nh b&#224;y
+                            b&#7889; c&#7909;c r&#245; r&#224;ng, d&#7877; theo d&#245;i. M&#7909;c ti&#234;u ngh&#7873;
+                            nghi&#7879;p th&#7875; hi&#7879;n &#273;&#7883;nh h&#432;&#7899;ng c&#225; nh&#226;n
+                            t&#7889;t.</p>
+                    </div>
+                    <div class="feedback-card warning">
+                        <i data-lucide="alert-triangle"
+                            style="color: #f59e0b; flex-shrink: 0; width: 18px; height: 18px;"></i>
+                        <p class="feedback-text"><strong>G&#7907;i &#253; c&#7843;i ti&#7871;n:</strong> N&#234;n
+                            c&#7909; th&#7875; h&#243;a k&#7871;t qu&#7843; trong ph&#7847;n kinh nghi&#7879;m (b&#7893;
+                            sung s&#7889; li&#7879;u, t&#7927; l&#7879; %, th&#224;nh t&#237;ch &#273;o l&#432;&#7901;ng
+                            &#273;&#432;&#7907;c).</p>
+                    </div>
+                    <div class="feedback-card">
+                        <i data-lucide="sparkles"
+                            style="color: #6366f1; flex-shrink: 0; width: 18px; height: 18px;"></i>
+                        <p class="feedback-text"><strong>Ch&#7913;ng ch&#7881; b&#7893; tr&#7907;:</strong> N&#234;n
+                            b&#7893; sung ch&#7913;ng ch&#7881; Google Digital Garage ho&#7863;c HubSpot &#273;&#7875;
+                            t&#259;ng &#273;i&#7875;m ATS.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <script type="module">
+        import { GoogleGenerativeAI } from "@google/generative-ai";
+
+        // Xử lý Tải ảnh đại diện (Avatar) đồng bộ trực tiếp
+        window.uploadAvatar = function (input) {
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    const imgUrl = e.target.result;
+
+                    // Cập nhật preview trên CV
+                    const cvImg = document.getElementById("cv-avatar-img");
+                    const cvPlh = document.getElementById("cv-avatar-placeholder");
+                    cvImg.src = imgUrl;
+                    cvImg.style.display = "block";
+                    cvPlh.style.display = "none";
+
+                    // Cập nhật preview trên ô nhập liệu
+                    const inputPreview = document.getElementById("avatar-input-preview");
+                    inputPreview.innerHTML = `<img src="${imgUrl}" style="width: 100%; height: 100%; object-fit: cover;">`;
+                }
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+        window.removeAvatar = function () {
+            // Khôi phục mặc định trên CV
+            const cvImg = document.getElementById("cv-avatar-img");
+            const cvPlh = document.getElementById("cv-avatar-placeholder");
+            cvImg.src = "";
+            cvImg.style.display = "none";
+            cvPlh.style.display = "block";
+
+            // Khôi phục mặc định trên ô nhập liệu
+            const inputPreview = document.getElementById("avatar-input-preview");
+            inputPreview.innerHTML = `<i data-lucide="user" style="width: 24px; height: 24px; color: var(--workspace-text-muted);"></i>`;
+            if (window.lucide) window.lucide.createIcons();
+
+            // Clear input file
+            document.getElementById("avatar-file").value = "";
+        }
+
+        // LÕI DỮ LIỆU MẪU CỤC BỘ (HỖ TRỢ OFFLINE SIMULATOR ĐẦY ĐỦ CÁC TRƯỜNG CV)
+        const localDemos = {
+            it: {
+                optimizedGoal: "Đam mê phát triển sản phẩm phần mềm, khát khao chinh phục thử thách lập trình ứng dụng Web Fullstack. Định hướng đóng góp tư duy giải thuật tối ưu và kỹ năng phát triển phần mềm vững chắc (ReactJS, NodeJS) nhằm xây dựng hệ thống ổn định, mang lại trải nghiệm số hoàn hảo cho người dùng.",
+                optimizedSkills: [
+                    "Lập trình ứng dụng (ReactJS, NodeJS)",
+                    "Quản trị cơ sở dữ liệu (MongoDB, MySQL)",
+                    "Quản lý mã nguồn & DevOps (Git, GitHub)",
+                    "Tư duy thuật toán & Giải quyết vấn đề tốt"
+                ],
+                optimizedExperience: [
+                    {
+                        org: "CÂU LẠC BỘ TIN HỌC TRƯỜNG THPT / ĐẠI HỌC",
+                        role: "Trưởng ban Kỹ thuật & Đào tạo",
+                        time: "09/2025 - Hiện tại",
+                        bullets: [
+                            "Chủ trì tổ chức 5 buổi workshop kỹ thuật cơ bản, hỗ trợ nâng cao tư duy giải thuật và kỹ năng máy tính cơ bản cho hơn 20 thành viên mới gia nhập.",
+                            "Quản lý và duy trì hoạt động hạ tầng phòng Lab của câu lạc bộ, đảm bảo tính sẵn sàng thiết bị đạt 98%."
+                        ]
+                    }
+                ],
+                optimizedEducation: [
+                    {
+                        org: "ĐẠI HỌC BÁCH KHOA HÀ NỘI / TP.HCM",
+                        role: "Chuyên ngành Khoa học Máy tính",
+                        time: "2023 - Hiện tại",
+                        bullets: [
+                            "Điểm trung bình tích lũy (GPA): 3.6/4.0",
+                            "Thành viên đội tuyển Olympic Tin học của trường."
+                        ]
+                    }
+                ],
+                optimizedProjects: [
+                    {
+                        org: "DỰ ÁN CÁ NHÂN: WEBSITE QUẢN LÝ HỌC TẬP",
+                        role: "Lập trình viên Fullstack chính",
+                        time: "01/2026 - Hiện tại",
+                        bullets: [
+                            "Thiết kế và xây dựng hoàn chỉnh ứng dụng quản lý bài tập bằng ReactJS & NodeJS, giúp hơn 50 học sinh quản lý hiệu quả 100% thời gian biểu và deadline cá nhân.",
+                            "Tối ưu hóa các truy vấn CSDL MongoDB giúp tốc độ tải trang nhanh dưới 1.2 giây, giảm thiểu gián đoạn trải nghiệm người dùng."
+                        ]
+                    }
+                ],
+                optimizedCertificates: [
+                    "Chứng chỉ IELTS 6.5 học thuật",
+                    "Chứng chỉ AWS Certified Cloud Practitioner"
+                ],
+                optimizedLanguages: [
+                    "Tiếng Việt (Bản xứ)",
+                    "Tiếng Anh (B2 / IELTS 6.5)"
+                ],
+                coverLetter: `Kính gửi Bộ phận Tuyển dụng,\n\nTôi viết thư này để bày tỏ nguyện vọng ứng tuyển vị trí Thực tập sinh Lập trình Web Fullstack tại Quý công ty. Với tư duy logic vững vàng cùng kinh nghiệm thực chiến phát triển ứng dụng thông qua các dự án cá nhân, tôi tin mình sẽ nhanh chóng hòa nhập và cống hiến cho sự phát triển của công ty.\n\nThông qua dự án xây dựng Website Quản lý học tập tự tay thiết kế kiến trúc từ giao diện đến cơ sở dữ liệu, tôi đã trau dồi sâu sắc tư duy viết mã nguồn sạch (clean code) và tối ưu hóa hiệu năng truy vấn. Ngoài ra, tinh thần chủ động trong ban kỹ thuật CLB cũng rèn luyện cho tôi khả năng cộng tác nhóm và hỗ trợ đồng nghiệp hiệu quả.\n\nTôi rất mong có cơ hội tham gia phỏng vấn để thảo luận chi tiết hơn về cách thức các kỹ năng kỹ thuật của tôi có thể đáp ứng kỳ vọng phát triển sản phẩm của Quý công ty.\n\nTrân trọng,\nNguyễn Văn A`,
+                aiFeedback: [
+                    "Ưu điểm xuất sắc: Đã có sản phẩm dự án cá nhân hoàn chỉnh làm dẫn chứng, thể hiện được tư duy lập trình Fullstack cơ bản vững vàng.",
+                    "Điểm cần cải tiến: Nên bổ sung thêm các liên kết GitHub trực tiếp dẫn đến dự án mã nguồn để nhà tuyển dụng dễ dàng đánh giá kỹ năng code thực tế.",
+                    "Lộ trình đề xuất: Hãy ôn luyện thêm các câu hỏi phỏng vấn thuật toán cơ bản trên LeetCode/Hackerrank và tìm hiểu thêm về Docker/CI-CD để hồ sơ trở nên nổi bật hơn trong mắt các doanh nghiệp lớn."
+                ]
+            },
+            marketing: {
+                optimizedGoal: "Đam mê sâu sắc lĩnh vực tiếp thị số, mong muốn cọ xát thực tiễn với các chiến dịch nội dung đa kênh sáng tạo. Định hướng ứng dụng tư duy thiết kế hình ảnh sắc bén và kỹ năng biên tập nội dung thu hút nhằm gia tăng uy tín, độ phủ sóng thương hiệu và tối đa hóa tỷ lệ chuyển đổi cho doanh nghiệp.",
+                optimizedSkills: [
+                    "Sáng tạo nội dung (Content Writing, Copywriting)",
+                    "Thiết kế ấn phẩm & Video (Canva, CapCut)",
+                    "Quản trị các kênh Social (Facebook, TikTok)",
+                    "Tối ưu hóa công cụ tìm kiếm (SEO Content)"
+                ],
+                optimizedExperience: [
+                    {
+                        org: "THE COFFEE HOUSE",
+                        role: "Nhân Viên Phục Vụ & Chăm Sóc Khách Hàng",
+                        time: "05/2025 - 08/2025",
+                        bullets: [
+                            "Cung cấp trải nghiệm ẩm thực chất lượng cao cho hơn 150 lượt khách hàng mỗi ca, giải quyết 100% khiếu nại phát sinh một cách lịch thiệp.",
+                            "Hỗ trợ tăng doanh số bán kèm đồ ăn nhẹ tại quầy đạt 15% thông qua kỹ năng lắng nghe và gợi ý sản phẩm khéo léo."
+                        ]
+                    }
+                ],
+                optimizedEducation: [
+                    {
+                        org: "ĐẠI HỌC KINH TẾ TP.HCM (UEH)",
+                        role: "Chuyên ngành Marketing kỹ thuật số",
+                        time: "2023 - Hiện tại",
+                        bullets: [
+                            "Điểm trung bình tích lũy (GPA): 3.4/4.0",
+                            "Đạt học bổng Khuyến khích học tập học kỳ I năm học 2024 - 2025."
+                        ]
+                    }
+                ],
+                optimizedProjects: [
+                    {
+                        org: "CÂU LẠC BỘ TRUYỀN THÔNG TRƯỜNG ĐẠI HỌC",
+                        role: "Trưởng Ban Sáng Tạo Nội Dung",
+                        time: "09/2025 - Hiện tại",
+                        bullets: [
+                            "Chủ trì lên kế hoạch và xuất bản hơn 30 bài viết truyền thông đạt hơn 1,500 lượt tương tác tự nhiên mỗi tuần, thúc đẩy hình ảnh CLB lên 250%.",
+                            "Phối hợp đồ họa thiết kế các bộ ấn phẩm hình ảnh Canva chuẩn nhận diện thương hiệu, giảm thời gian sản xuất ấn phẩm đi 30% nhờ quy chuẩn hóa template."
+                        ]
+                    }
+                ],
+                optimizedCertificates: [
+                    "Chứng chỉ Google Digital Garage",
+                    "Chứng chỉ HubSpot Inbound Marketing"
+                ],
+                optimizedLanguages: [
+                    "Tiếng Việt (Bản xứ)",
+                    "Tiếng Anh (B2 / IELTS 6.5)"
+                ],
+                coverLetter: `Kính gửi Bộ phận Tuyển dụng,\n\nTôi viết thư này để bày tỏ sự hào hứng đối với cơ hội ứng tuyển vị trí Thực tập sinh Content & Social Media Marketing tại Quý công ty. Với sự nhạy bén về xu hướng mạng xã hội cùng kỹ năng sáng tạo nội dung đa nền tảng, tôi mong muốn được đồng hành cùng đội ngũ để tạo dựng những chiến dịch truyền thông đột phá.\n\nTrong thời gian dẫn dắt đội ngũ truyền thông tại CLB trường, tôi đã chứng minh năng lực thiết kế hình ảnh Canva bắt mắt và biên tập nội dung có chiều sâu, thu hút hàng ngàn lượt tương tác tự nhiên của học sinh sinh viên. Sự kiên trì cẩn thận học hỏi từ công việc phục vụ tại The Coffee House cũng rèn luyện cho tôi sự tinh tế, khả năng nắm bắt tâm lý khách hàng cực kỳ nhạy bén.\n\nTôi tin rằng năng lượng tuổi trẻ cùng tư duy tiếp thị sáng tạo của mình sẽ mang lại làn gió mới cho các kênh truyền thông của Quý công ty. Xin chân thành cảm ơn!\n\nTrân trọng,\nNguyễn Văn A`,
+                aiFeedback: [
+                    "Ưu điểm xuất sắc: Kinh nghiệm phong phú về sáng tạo nội dung thực tế trên các kênh mạng xã hội, phong cách viết lách trôi chảy, năng động.",
+                    "Điểm cần cải tiến: Cần bổ sung cụ thể các công cụ đo lường kết quả truyền thông như Google Analytics hoặc Facebook Meta Suite để thể hiện tư duy định lượng dữ liệu tiếp thị.",
+                    "Khóa học & Chứng chỉ bổ trợ: Bạn nên đăng ký ngay khóa học miễn phí 'Google Digital Garage - Fundamentals of Digital Marketing' để lấy chứng chỉ chuyên nghiệp nâng cấp CV của mình."
+                ]
+            },
+            accounting: {
+                optimizedGoal: "Định hướng phát triển bền vững trong ngành kế toán tài chính, mong muốn áp dụng kiến thức chuyên môn giảng đường vào công tác thực tiễn. Rèn luyện tư duy phân tích số liệu nhạy bén, cam kết cẩn trọng, tỉ mỉ và trung thực nhằm hỗ trợ tối đa ban kế toán kiểm soát sổ sách và lập báo cáo tài chính không sai sót.",
+                optimizedSkills: [
+                    "Kỹ năng Excel nâng cao (Vlookup, Pivot Table)",
+                    "Kế toán tổng hợp & Nhập liệu chứng từ",
+                    "Khai báo thuế & Sử dụng phần mềm HTKK",
+                    "Quản lý tài chính & Đối soát ngân quỹ"
+                ],
+                optimizedExperience: [
+                    {
+                        org: "QUÁN ĂN GIA ĐÌNH",
+                        role: "Trợ lý Kiểm kho & Nhập liệu thu chi",
+                        time: "06/2025 - Hiện tại",
+                        bullets: [
+                            "Hỗ trợ nhập liệu hóa đơn đầu vào, kiểm kho nguyên vật liệu hàng ngày giúp giảm thiểu thất thoát ngân sách quán ăn đạt 10%.",
+                            "Đối chiếu doanh thu hàng ngày trên hệ thống POS với số liệu tiền mặt thực tế, giải quyết gọn gàng các chênh lệch số liệu."
+                        ]
+                    }
+                ],
+                optimizedEducation: [
+                    {
+                        org: "ĐẠI HỌC NGOẠI THƯƠNG",
+                        role: "Chuyên ngành Kế toán - Kiểm toán",
+                        time: "2023 - Hiện tại",
+                        bullets: [
+                            "Điểm trung bình tích lũy (GPA): 3.5/4.0",
+                            "Giải Nhì cuộc thi Tìm kiếm tài năng Kế toán trẻ 2025."
+                        ]
+                    }
+                ],
+                optimizedProjects: [
+                    {
+                        org: "BAN CÁN SỰ LỚP HỌC (3 NĂM LIÊN TỤC)",
+                        role: "Thủ quỹ lớp & Trưởng ban Đời sống",
+                        time: "09/2023 - 05/2026",
+                        bullets: [
+                            "Quản lý quỹ lớp và đối soát chi tiêu chính xác tuyệt đối 100% cho các phong trào học tập, dã ngoại của lớp hơn 45 học sinh.",
+                            "Lập báo cáo tài chính quỹ lớp hàng tháng rõ ràng trên Excel, giúp minh bạch hóa 100% thông tin trước giáo viên và phụ huynh học sinh."
+                        ]
+                    }
+                ],
+                optimizedCertificates: [
+                    "Chứng chỉ Tin học văn phòng MOS Excel",
+                    "Đang ôn luyện chứng chỉ ACCA môn F1, F2"
+                ],
+                optimizedLanguages: [
+                    "Tiếng Việt (Bản xứ)",
+                    "Tiếng Anh (Giao tiếp tốt)"
+                ],
+                coverLetter: `Kính gửi Bộ phận Tuyển dụng,\n\nTôi viết thư này để ứng cử vị trí Trợ lý Kế toán tại Quý công ty. Với nền tảng kiến thức kế toán vững chắc và kỹ năng xử lý số liệu chính xác trên Excel, tôi mong muốn được hỗ trợ đội ngũ kế toán trong các nghiệp vụ đối soát và quản lý tài chính thực tế của doanh nghiệp.\n\nThời gian đảm nhận vai trò Thủ quỹ lớp đã rèn luyện cho tôi tinh thần trách nhiệm cực kỳ cao, cẩn trọng trong từng con số và tính minh bạch tài chính. Việc hỗ trợ kinh doanh tại quán ăn gia đình cũng giúp tôi làm quen với quy trình đối soát thu chi thực tế, rèn luyện tư duy thực tiễn để giải quyết số liệu nhanh chóng.\n\nTôi hy vọng sẽ có cơ hội được trình bày chi tiết về tinh thần trách nhiệm và lòng cẩn cẩn trọng đối với số liệu của mình trong cuộc phỏng vấn trực tiếp sắp tới.\n\nTrân trọng,\nNguyễn Văn A`,
+                aiFeedback: [
+                    "Ưu điểm xuất sắc: Tinh thần trách nhiệm cao, cẩn thận đối soát chính xác tuyệt đối. Excel thành thạo là một điểm cộng lớn.",
+                    "Điểm cần cải tiến: Kinh nghiệm còn mang tính nội bộ. Nên tìm cơ hội tiếp xúc với các phần mềm kế toán phổ biến như MISA để làm quen sớm.",
+                    "Chứng chỉ nên học: Hãy đầu tư thi lấy chứng chỉ Tin học văn phòng quốc tế MOS Excel để nâng cao lợi thế cạnh tranh khi nộp hồ sơ vào các doanh nghiệp lớn."
+                ]
+            },
+            design: {
+                optimizedGoal: "Khát khao phát huy tư duy mỹ thuật sáng tạo độc đáo và kỹ năng thiết kế ấn phẩm xuất sắc (Photoshop, Illustrator, Canva). Định hướng xây dựng các sản phẩm thiết kế đồ họa chất lượng cao, bắt kịp xu hướng thị trường nhằm truyền tải hiệu quả thông điệp cốt lõi của sản phẩm và nâng tầm độ nhận diện thương hiệu cho doanh nghiệp.",
+                optimizedSkills: [
+                    "Thiết kế ấn phẩm (Adobe Photoshop, Illustrator)",
+                    "Thiết kế UX/UI & Wireframing (Figma cơ bản)",
+                    "Biên tập & Thiết kế chuyển động (Canva Pro)",
+                    "Tư duy mỹ thuật, bố cục & Phối màu chuẩn"
+                ],
+                optimizedExperience: [
+                    {
+                        org: "BAN TRUYỀN THÔNG VÀ SỰ KIỆN TRƯỜNG",
+                        role: "Trưởng ban Thiết Kế Mỹ Thuật",
+                        time: "09/2024 - Hiện tại",
+                        bullets: [
+                            "Lên ý tưởng sáng tạo và trực tiếp thiết kế toàn bộ poster, banner, standee quảng bá cho 3 sự kiện quy mô lớn thu hút hơn 1,000 học sinh.",
+                            "Định hình phong cách thị giác và phát triển bộ guideline thiết kế giúp đồng bộ hóa hình ảnh sự kiện trên các kênh truyền thông trực tuyến."
+                        ]
+                    }
+                ],
+                optimizedEducation: [
+                    {
+                        org: "ĐẠI HỌC MỸ THUẬT CÔNG NGHIỆP",
+                        role: "Chuyên ngành Thiết kế Đồ họa",
+                        time: "2023 - Hiện tại",
+                        bullets: [
+                            "Điểm trung bình tích lũy (GPA): 3.3/4.0",
+                            "Top 5 đồ án thiết kế poster xuất sắc cấp trường."
+                        ]
+                    }
+                ],
+                optimizedProjects: [
+                    {
+                        org: "DỰ ÁN KHỞI NGHIỆP SINH VIÊN (FREELANCE)",
+                        role: "Nhà thiết kế Logo & Nhận diện thương hiệu",
+                        time: "03/2025 - Hiện tại",
+                        bullets: [
+                            "Hỗ trợ thiết kế bộ nhận diện thương hiệu cơ bản (Logo, Namecard, Poster) cho 4 dự án khởi nghiệp nhỏ của sinh viên khóa trên đạt điểm xuất sắc.",
+                            "Lắng nghe và chuyển hóa ý kiến khách hàng thành các bản phác thảo hình ảnh sinh động, đạt tỷ lệ hài lòng duyệt thiết kế lần đầu đạt 85%."
+                        ]
+                    }
+                ],
+                optimizedCertificates: [
+                    "Chứng chỉ Figma UI/UX Design từ Coursera",
+                    "Giải Ba cuộc thi Sáng tạo Poster Môi trường Xanh"
+                ],
+                optimizedLanguages: [
+                    "Tiếng Việt (Bản xứ)",
+                    "Tiếng Anh (Đọc hiểu tài liệu tốt)"
+                ],
+                coverLetter: `Kính gửi Bộ phận Tuyển dụng,\n\nTôi viết thư này để bày tỏ mong muốn được gia nhập Quý công ty với tư cách là Thực tập sinh Thiết kế Đồ họa. Sở hữu tư duy hình ảnh nhạy bén cùng khả năng sử dụng thành thạo Photoshop, Illustrator và Figma, tôi rất hào hứng được tham gia thiết kế các sản phẩm truyền thông thương mại chất lượng của công ty.\n\nTrải nghiệm chỉ đạo hình ảnh cho các sự kiện quy mô ngàn học sinh tại trường đã giúp tôi hiểu cách phối hợp màu sắc, xây dựng bố cục thị giác có sức nặng và bám sát tinh thần thông điệp cốt lõi. Sự chủ động lắng nghe ý tưởng từ khách hàng trong các dự án freelance cũng rèn luyện cho tôi phong cách làm việc nhóm chuyên nghiệp và linh hoạt giải quyết yêu cầu.\n\nTôi vô cùng mong muốn được trình chiếu Porfolio thiết kế trực tiếp và cùng Quý công ty thảo luận về những đóng góp hình ảnh sáng tạo sắp tới.\n\nTrân trọng,\nNguyễn Văn A`,
+                aiFeedback: [
+                    "Ưu điểm xuất sắc: Tư duy mỹ thuật rất tốt, khả năng tự chủ thiết kế Guideline và Poster sự kiện lớn rất ấn tượng.",
+                    "Điểm cần cải tiến: Thiếu liên kết trực tiếp đến Portfolio (Behance hoặc Google Drive). Đây là lỗi chí mạng đối với một Designer ứng tuyển.",
+                    "Khóa học khuyên học: Nên tìm hiểu thêm về tư duy thiết kế UX/UI chuyên nghiệp trên Figma thông qua khóa học ngắn hạn của Coursera để đa dạng hóa năng lực thiết kế kỹ thuật số."
+                ]
+            }
+        };
+
+        // Quản lý và thiết lập Workspace Theme
+        window.setWorkspaceTheme = function (themeName, element) {
+            document.documentElement.setAttribute('data-theme', themeName);
+            document.querySelectorAll('.theme-toggle-btn').forEach(btn => btn.classList.remove('active'));
+            if (element) {
+                element.classList.add('active');
+            }
+        }
+
+        // Switch Tabs Kết Quả
+        window.switchResultTab = function (tabId, element) {
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+
+            document.getElementById(tabId).classList.add('active');
+            element.classList.add('active');
+        }
+
+        // Đồng bộ trực tiếp dữ liệu cá nhân sang khung xem trước
+        window.syncPreview = function () {
+            const nameVal = document.getElementById("name").value.trim();
+            const majorVal = document.getElementById("major").value.trim();
+            const emailVal = document.getElementById("email").value.trim();
+            const phoneVal = document.getElementById("phone").value.trim();
+            const addressVal = document.getElementById("address").value.trim();
+
+            document.getElementById("out-name").innerText = nameVal ? nameVal.toUpperCase() : "NGUYỄN VĂN A";
+            document.getElementById("out-major").innerText = majorVal ? majorVal : "Thực Tập Sinh Digital Marketing";
+
+            document.getElementById("out-email").innerText = emailVal ? emailVal : "nguyenvana@gmail.com";
+            document.getElementById("out-email-box").style.display = "inline-flex";
+
+            document.getElementById("out-phone").innerText = phoneVal ? phoneVal : "0987.654.321";
+            document.getElementById("out-phone-box").style.display = "inline-flex";
+
+            document.getElementById("out-address").innerText = addressVal ? addressVal : "Quận 1, TP. Hồ Chí Minh";
+            document.getElementById("out-address-box").style.display = "inline-flex";
+
+            // Cập nhật tiêu đề thư ứng tuyển
+            document.getElementById("out-email-subject").innerText = `Ứng tuyển ${majorVal || "Thực Tập Sinh Digital Marketing"} - ${nameVal || "Nguyễn Văn A"}`;
+
+            // Cập nhật giao diện Email gửi đi giả lập
+            const senderElement = document.getElementById("email-sender-val");
+            if (senderElement) {
+                senderElement.innerText = `${nameVal || "Nguyễn Văn A"} <${emailVal || "nguyenvana@gmail.com"}>`;
+            }
+            const attachmentElement = document.getElementById("email-attachment-name");
+            if (attachmentElement) {
+                const safeName = (nameVal || "Nguyen_Van_A").replace(/\s+/g, '_');
+                attachmentElement.innerText = `CV_${safeName}.pdf`;
+            }
+
+            // Tự động thay đổi phong nền/màu sắc tương ứng với ngành nghề
+            window.autoDetectIndustry(majorVal);
+
+            // Kích hoạt vẽ lại biểu tượng Lucide
+            if (window.lucide) window.lucide.createIcons();
+        }
+
+        // Tùy chỉnh màu sắc (Preset)
+        window.setCVColor = function (colorCode, element) {
+            document.documentElement.style.setProperty('--cv-primary', colorCode);
+            document.querySelectorAll('.color-dot').forEach(el => el.classList.remove('active'));
+            element.classList.add('active');
+
+            // Khôi phục dải màu gradient cho nút bảng màu tùy chọn
+            const customDot = document.getElementById("custom-color-dot");
+            if (customDot && element !== customDot) {
+                customDot.style.background = 'linear-gradient(135deg, #ff0000 0%, #00ff00 50%, #0000ff 100%)';
+            }
+        }
+
+        // Tùy chỉnh màu sắc nâng cao bằng bảng màu (Custom Spectrum Color Picker)
+        window.setCustomCVColor = function (colorCode) {
+            document.documentElement.style.setProperty('--cv-primary', colorCode);
+            document.querySelectorAll('.color-dot').forEach(el => el.classList.remove('active'));
+
+            const customDot = document.getElementById("custom-color-dot");
+            if (customDot) {
+                customDot.classList.add('active');
+                customDot.style.background = colorCode;
+            }
+        }
+
+        // Tùy chỉnh Bố cục CV
+        window.setCVLayout = function (layoutName) {
+            const preview = document.getElementById("cv-preview");
+            preview.classList.remove("layout-executive", "layout-elegant", "layout-creative", "layout-tech", "layout-card", "layout-triple");
+            preview.classList.add(`layout-${layoutName}`);
+        }
+
+        // Tùy chỉnh Phong nền Ngành nghề
+        window.setCVIndustry = function (industryName) {
+            const preview = document.getElementById("cv-preview");
+            if (!preview) return;
+            preview.classList.remove("industry-biz", "industry-it", "industry-art", "industry-med");
+            preview.classList.add(`industry-${industryName}`);
+
+            // Cập nhật select dropdown
+            const select = document.getElementById("cv-industry-select");
+            if (select) {
+                select.value = industryName;
+            }
+
+            // Tự động đề xuất màu chữ/nhấn nổi bật và siêu tương phản với phong nền
+            let colorCode = '#1e3a8a'; // Xanh Navy đậm cho Kinh doanh (đặc biệt nổi bật trên nền kem)
+            if (industryName === 'it') colorCode = '#0ea5e9'; // Xanh Lam Công nghệ (siêu sắc nét trên lưới xanh)
+            else if (industryName === 'art') colorCode = '#be185d'; // Magenta Hồng Sáng tạo (làm bật toàn bộ thông tin trên hình tròn mờ)
+            else if (industryName === 'med') colorCode = '#0d9488'; // Xanh Ngọc Y tế (nổi bật và dịu mát trên sóng xanh)
+
+            document.documentElement.style.setProperty('--cv-primary', colorCode);
+
+            // Tự động kích hoạt chấm tròn màu tương ứng
+            document.querySelectorAll('.color-dot').forEach(el => {
+                el.classList.remove('active');
+                const bg = el.style.backgroundColor;
+                if (bg) {
+                    if (industryName === 'biz' && bg.includes('30')) el.classList.add('active'); // Navy Blue (rgb 30 58 138)
+                    else if (industryName === 'it' && bg.includes('14')) el.classList.add('active'); // Tech Blue (rgb 14 165 233)
+                    else if (industryName === 'art' && bg.includes('190')) el.classList.add('active'); // Magenta (rgb 190 24 93)
+                    else if (industryName === 'med' && bg.includes('13')) el.classList.add('active'); // Teal (rgb 13 148 136)
+                }
+            });
+
+            // Khôi phục nút bảng màu tùy chỉnh về dạng dải màu gradient
+            const customDot = document.getElementById("custom-color-dot");
+            if (customDot) {
+                customDot.style.background = 'linear-gradient(135deg, #ff0000 0%, #00ff00 50%, #0000ff 100%)';
+            }
+        }
+
+        // Tự động nhận diện ngành nghề dựa trên từ khóa vị trí hướng tới
+        window.autoDetectIndustry = function (majorText) {
+            if (!majorText) return;
+            const text = majorText.toLowerCase();
+
+            let detected = 'biz'; // Mặc định dùng phong nền chuyên nghiệp Corporate (Biz)
+
+            // 1. Nhóm Công nghệ / Kỹ thuật / Nghiên cứu khoa học (IT / Tech / Engineering)
+            const itKeywords = [
+                'it', 'lập trình', 'developer', 'web', 'fullstack', 'frontend', 'backend',
+                'software', 'phần mềm', 'kỹ sư', 'engineer', 'code', 'máy tính', 'cơ điện',
+                'tự động', 'robot', 'điện tử', 'mạng', 'network', 'cyber', 'security',
+                'dữ liệu', 'data', 'ai', 'trí tuệ nhân tạo', 'khoa học', 'science', 'tech',
+                'hệ thống', 'system', 'công nghệ', 'kiến trúc', 'xây dựng', 'chế tạo', 'cơ khí'
+            ];
+
+            // 2. Nhóm Nghệ thuật / Sáng tạo / Tiếp thị / Media (Creative / Art / Marketing)
+            const artKeywords = [
+                'thiết kế', 'design', 'mỹ thuật', 'họa', 'art', 'sáng tạo', 'creative',
+                'marketing', 'truyền thông', 'content', 'social', 'media', 'quảng cáo',
+                'pr', 'sự kiện', 'event', 'nhạc', 'music', 'ảnh', 'photo', 'video',
+                'film', 'phim', 'nhà báo', 'journal', 'viết', 'copywrit', 'thời trang',
+                'fashion', 'make up', 'nội thất'
+            ];
+
+            // 3. Nhóm Y tế / Sức khỏe / Giáo dục / Dịch vụ / Xã hội (Healthcare / Services / Education)
+            const medKeywords = [
+                'điều dưỡng', 'y tế', 'y khoa', 'bác sĩ', 'doctor', 'nurse', 'sức khỏe',
+                'health', 'bệnh viện', 'phòng khám', 'dược', 'giáo dục', 'dạy', 'giáo viên',
+                'teacher', 'sư phạm', 'học', 'tâm lý', 'psycholog', 'xã hội', 'ngo',
+                'tình nguyện', 'phục vụ', 'dịch vụ', 'khách sạn', 'hotel', 'tour',
+                'du lịch', 'travel', 'hàng không', 'chăm sóc', 'spa', 'trị liệu', 'chữa'
+            ];
+
+            // Kiểm tra khớp từ khóa
+            if (itKeywords.some(kw => text.includes(kw))) {
+                detected = 'it';
+            } else if (artKeywords.some(kw => text.includes(kw))) {
+                detected = 'art';
+            } else if (medKeywords.some(kw => text.includes(kw))) {
+                detected = 'med';
+            } else {
+                detected = 'biz'; // Mọi ngành nghề khác (May mặc, nông nghiệp, luật, nhân sự...)
+            }
+
+            window.setCVIndustry(detected);
+        }
+
+        // Tùy chỉnh Font chữ
+        window.setCVFont = function (fontName, element) {
+            let actualFont = 'sans-serif';
+            if (fontName === 'Times New Roman') actualFont = "'Times New Roman', Times, serif";
+            else if (fontName === 'Inter') actualFont = "'Inter', sans-serif";
+            else if (fontName === 'Outfit') actualFont = "'Outfit', sans-serif";
+            else if (fontName === 'Playfair Display') actualFont = "'Playfair Display', serif";
+            else if (fontName === 'Lora') actualFont = "'Lora', serif";
+
+            document.documentElement.style.setProperty('--cv-font', actualFont);
+            document.querySelectorAll('.font-tab').forEach(el => el.classList.remove('active'));
+            element.classList.add('active');
+        }
+
+        // Sao chép thư ứng tuyển nhanh
+        window.copyCoverLetter = function () {
+            const text = document.getElementById("out-coverletter").innerText;
+            navigator.clipboard.writeText(text).then(() => {
+                alert("Đã sao chép Thư ứng tuyển vào Clipboard!");
+            }).catch(err => {
+                alert("Lỗi khi sao chép: " + err);
+            });
+        }
+
+        // 4.2. LOAD DỮ LIỆU GỢI Ý THEO NGÀNH NGHỀ (Học sinh - Sinh viên)
+        window.selectQuickMajor = function (majorKey) {
+            if (majorKey === 'it') {
+                document.getElementById("major").value = "Thực tập sinh Lập trình Web Fullstack";
+                document.getElementById("skills").value = "Lập trình Javascript (ReactJS, NodeJS), Cơ sở dữ liệu MongoDB/MySQL, làm việc tốt với git và github, tư duy thuật toán tốt, tự học hỏi nhanh.";
+                document.getElementById("experience").value = "- Thành viên câu lạc bộ Tin Học trường: Hỗ trợ kỹ thuật máy tính và hướng dẫn các thuật toán cơ bản cho hơn 20 thành viên mới.";
+                document.getElementById("goal").value = "Em đam mê phát triển web, muốn học hỏi quy trình viết code thực tế từ các anh chị khóa trước, đóng góp tư duy viết code sạch để tối ưu phần mềm.";
+                document.getElementById("education").value = "- Sinh viên Đại học Bách khoa Hà Nội chuyên ngành Khoa học Máy tính năm 3, GPA 3.6/4.0.\n- Học sinh giỏi môn Toán cấp Tỉnh khóa 2020 - 2023.";
+                document.getElementById("projects").value = "- Dự án cá nhân Website Học Tập Trực Tuyến: Xây dựng hệ thống học trực tuyến nhóm 3 người bằng ReactJS và Node.js giúp quản lý hơn 50 học sinh học tập tiện lợi.\n- Đồ án môn học Lập trình Web: Thiết kế giao diện app bán hàng trên di động thân thiện, đạt điểm 10/10.";
+                document.getElementById("certificates").value = "- Chứng chỉ ngoại ngữ IELTS 6.5 học thuật.\n- Chứng chỉ Lập trình viên di động Flutter từ Coursera.";
+            } else if (majorKey === 'marketing') {
+                document.getElementById("major").value = "Thực Tập Sinh Content & Social Media Marketing";
+                document.getElementById("skills").value = "Sáng tạo nội dung truyền thông, thiết kế ảnh Canva, chỉnh sửa video cơ bản bằng CapCut, quản trị fanpage Facebook, viết blog chuẩn SEO.";
+                document.getElementById("experience").value = "- Cộng tác viên viết nội dung tự do: Biên tập các bài viết review sản phẩm thu hút học sinh sinh viên.";
+                document.getElementById("goal").value = "Đam mê viết lách và truyền cảm hứng. Em muốn thử thách bản thân với kế hoạch truyền thông thực chiến để giúp thương hiệu tiếp cận được nhiều học sinh sinh viên hơn.";
+                document.getElementById("education").value = "- Sinh viên Đại học Kinh tế TP.HCM chuyên ngành Digital Marketing năm 3, GPA 3.4/4.0.\n- Đạt học bổng Khuyến khích học tập học kỳ I năm học 2024 - 2025.";
+                document.getElementById("projects").value = "- Dự án Nghiên cứu hành vi tiêu dùng sinh viên: Trưởng nhóm 5 người xây dựng kế hoạch nội dung mạng xã hội thu về 15,000 views và 500 khách hàng tiềm năng.\n- Kế hoạch truyền thông cho Sự kiện CLB: Lên ý tưởng và xuất bản bộ poster sự kiện thu hút hơn 800 sinh viên tham gia.";
+                document.getElementById("certificates").value = "- Chứng chỉ Google Digital Garage - Fundamentals of Digital Marketing.\n- Chứng chỉ Inbound Marketing của HubSpot.";
+            } else if (majorKey === 'accounting') {
+                document.getElementById("major").value = "Trợ lý Kế toán & Kiểm toán nội bộ";
+                document.getElementById("skills").value = "Sử dụng tốt phần mềm kế toán Excel (Vlookup, Pivot Table), nhập liệu hóa đơn chính xác, hiểu biết các nguyên tắc kế toán cơ bản, cẩn thận và trung thực.";
+                document.getElementById("experience").value = "- Hỗ trợ nhập liệu sổ sách hóa đơn quán ăn gia đình: Giúp kiểm soát và đối soát doanh thu chi phí hàng ngày không sai sót.";
+                document.getElementById("goal").value = "Muốn áp dụng kiến thức tài chính kế toán trên giảng đường vào thực tiễn doanh nghiệp, rèn luyện sự cẩn thận tỉ mỉ để hỗ trợ bộ phận kế toán hoàn thành báo cáo số liệu chuẩn xác.";
+                document.getElementById("education").value = "- Sinh viên Đại học Ngoại thương chuyên ngành Kế toán - Kiểm toán năm 3, GPA 3.5/4.0.\n- Giải Nhì cuộc thi Tìm kiếm tài năng Kế toán trẻ cấp trường năm 2025.";
+                document.getElementById("projects").value = "- Dự án Mô phỏng kiểm toán báo cáo tài chính: Thành viên phụ trách phân tích nợ phải thu và kiểm tra quỹ, được chọn làm bài thuyết trình xuất sắc môn học.\n- Báo cáo phân tích dòng tiền CLB: Chuẩn hóa hệ thống thu chi và lập dự toán ngân sách cho các hoạt động tài chính lớp học.";
+                document.getElementById("certificates").value = "- Chứng chỉ Tin học văn phòng MOS Excel xuất sắc.\n- Đang ôn luyện chứng chỉ ACCA quốc tế môn F1, F2.";
+            } else if (majorKey === 'design') {
+                document.getElementById("major").value = "Thực Tập Sinh Thiết Kế Đồ Họa (Graphic Designer)";
+                document.getElementById("skills").value = "Sử dụng phần mềm thiết kế Adobe Photoshop, Adobe Illustrator, Canva Pro, thiết kế poster sự kiện trường học, lên ý tưởng giao diện web/app cơ bản.";
+                document.getElementById("experience").value = "- Trưởng Ban Thiết Kế CLB Tổ Chức Sự Kiện trường: Thiết kế toàn bộ poster, standee, băng rôn cho 3 sự kiện lớn thu hút hơn 1,000 học sinh toàn trường.";
+                document.getElementById("goal").value = "Mong muốn phát huy tư duy thiết kế mỹ thuật sáng tạo, tìm kiếm cơ hội cọ xát với các sản phẩm truyền thông thương mại thực tế và học hỏi cách làm việc nhóm thiết kế chuyên nghiệp.";
+                document.getElementById("education").value = "- Sinh viên Đại học Mỹ thuật Công nghiệp chuyên ngành Thiết kế Đồ họa năm 3, GPA 3.3/4.0.\n- Top 5 Đồ án thiết kế poster sự kiện xuất sắc cấp Khoa năm 2024.";
+                document.getElementById("projects").value = "- Thiết kế Bộ nhận diện thương hiệu Coffee Shop: Graphic Designer chính, thiết kế logo, bao bì cốc, menu và brand guideline thực tế được khách hàng duyệt ngay.\n- Dự án Thiết kế giao diện app du lịch: Lên ý tưởng Figma UI/UX và cẩm nang phong cách thị giác độc đáo đạt điểm A+.";
+                document.getElementById("certificates").value = "- Chứng chỉ UI/UX Figma chuyên sâu từ Coursera.\n- Giải Ba cuộc thi Thiết kế Poster Môi trường Xanh cấp Thành phố.";
+            }
+            syncPreview();
+        }
+
+        // Tải dữ liệu mẫu chung mặc định
+        window.loadSampleData = function () {
+            document.getElementById("name").value = "Trần Minh Quân";
+            document.getElementById("major").value = "Chuyên Viên Digital Marketing";
+            document.getElementById("email").value = "minhquan.tran@gmail.com";
+            document.getElementById("phone").value = "0901.234.567";
+            document.getElementById("address").value = "Quận Bình Thạnh, TP. Hồ Chí Minh";
+
+            document.getElementById("goal").value = "Mong muốn ứng tuyển vị trí chuyên viên tiếp thị số. Tận dụng kiến thức SEO thực chiến, kỹ năng sáng tạo nội dung đa nền tảng kết hợp cùng tư duy làm việc nhóm hiệu quả để cải tiến thứ hạng thương hiệu của công ty trên môi trường số.";
+
+            document.getElementById("skills").value = "Viết bài chuẩn SEO, quản trị fanpage Facebook, thiết kế hình ảnh cơ bản bằng Canva, phân tích dữ liệu Google Analytics cơ bản, tiếng anh B2 giao tiếp tốt.";
+
+            document.getElementById("experience").value = "- Cộng tác viên nội dung 4 tháng tại XYZ Media: Biên soạn hơn 50 bài viết chuẩn SEO đạt top tìm kiếm, biên tập kịch bản video ngắn TikTok thu về tổng cộng hơn 100k lượt xem tự nhiên.";
+
+            document.getElementById("education").value = "- Sinh viên Đại học Kinh tế TP.HCM chuyên ngành Digital Marketing khóa 48, điểm tích lũy GPA đạt 3.5/4.0.\n- Đạt học bổng Sinh viên tài năng năm học 2024.";
+
+            document.getElementById("projects").value = "- Chiến dịch viral video TikTok nhóm: Sáng tạo kịch bản và dựng video TikTok thu hút hơn 25,000 lượt tương tác tự nhiên trong vòng 1 tuần.\n- Thiết kế Portfolio Web cá nhân: Tự xây dựng landing page giới thiệu các sản phẩm thiết kế đồ họa của bản thân.";
+
+            document.getElementById("certificates").value = "- Chứng chỉ Google Digital Garage.\n- Chứng chỉ ngoại ngữ IELTS 6.5 và Chứng chỉ tin học quốc tế MOS Excel.";
+
+            syncPreview();
+        }
+
+        // Tối ưu hóa CV & Tạo tài nguyên bằng AI
+        async function generateAICV() {
+            const key = window.getApiKey();
+            const name = document.getElementById("name").value.trim() || "Nguyễn Văn A";
+            const major = document.getElementById("major").value.trim() || "Thực Tập Sinh Digital Marketing";
+            const goal = document.getElementById("goal").value.trim() || "Em muốn làm marketing thực tế, học hỏi kinh nghiệm, giúp công ty tăng doanh thu.";
+            const skills = document.getElementById("skills").value.trim() || "biết dùng canva thiết kế ảnh cơ bản, viết bài facebook, nói tiếng anh ổn, làm việc nhóm tốt";
+            const experience = document.getElementById("experience").value.trim() || "- Làm phục vụ quán cà phê 3 tháng: bê đồ uống, tiếp khách, dọn bàn.\n- Trưởng ban truyền thông câu lạc bộ trường: viết nội dung cho trang facebook CLB, thiết kế ảnh đăng bài thu hút được đông đảo sinh viên tương tác.";
+            const education = document.getElementById("education").value.trim() || "- Học sinh Trường học.";
+            const projects = document.getElementById("projects").value.trim() || "- Dự án cá nhân.";
+            const certificates = document.getElementById("certificates").value.trim() || "- IELTS và chứng chỉ tin học.";
+
+            // Hiển thị loading
+            const loader = document.getElementById("loading-overlay");
+            const loadingText = document.getElementById("loading-text");
+            loader.style.display = "flex";
+
+            // Bắt buộc phải có API Key để chạy AI thực tế (Gemini 2.5 Flash)
+            if (!key) {
+                alert("⚠️ Vui lòng nhập Gemini API Key của bạn để sử dụng tính năng tối ưu hóa CV bằng trí tuệ nhân tạo Gemini!");
+                loader.style.display = "none";
+                return;
+            }
+
+            try {
+                // Khởi tạo Gemini API
+                const genAI = new GoogleGenerativeAI(key);
+                const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+
+                const prompt = `
+            Bạn là một chuyên gia tuyển dụng nhân sự, viết CV và soạn thư ứng tuyển chuyên nghiệp toàn cầu.
+            Hãy lấy thông tin thô của một ứng viên dưới đây và tối ưu hóa thành 3 đầu ra chất lượng cao chuẩn tuyển dụng danh giá dành riêng cho vị trí ứng tuyển: "${major}".
+
+            Dữ liệu thô của ứng viên:
+            - Họ và tên ứng viên: ${name}
+            - Mục tiêu nghề nghiệp: ${goal}
+            - Kỹ năng thô: ${skills}
+            - Kinh nghiệm/Hoạt động thô: ${experience}
+            - Học vấn thô: ${education}
+            - Dự án thô: ${projects}
+            - Chứng chỉ/Ngoại ngữ thô: ${certificates}
+
+            HƯỚNG DẪN TẠO DỮ LIỆU ĐẦU RA:
+            1. Mục tiêu nghề nghiệp: Viết lại thành 2-3 câu thật hấp dẫn, chuyên nghiệp, thể hiện tham vọng học tập và cống hiến cho công ty.
+            2. Kỹ năng chuyên môn: Gom nhóm và đổi tên kỹ năng thô thành 4-5 cụm từ kỹ năng chuyên ngành gọn gàng, tinh gọn.
+            3. Kinh nghiệm làm việc: Tái cấu trúc thành danh sách các tổ chức, vai trò, thời gian hoạt động. Đối với mỗi tổ chức, hãy viết 2-3 bullet point rõ ràng, sử dụng các động từ hành động mạnh mẽ mang tính chất định lượng để gia tăng uy tín.
+            4. Học vấn & Giáo dục: Tối ưu hóa tên trường học, ngành học, xếp loại hoặc thành tích học tập thô sơ của ứng viên thành định dạng chuẩn chỉnh, chuyên nghiệp.
+            5. Dự án nổi bật: Tối ưu các dự án thô thành các dự án có cấu trúc tên dự án, vai trò, thời gian, và các bullet point mô tả kết quả đạt được, ngôn ngữ/công cụ sử dụng.
+            6. Chứng chỉ & Giải thưởng: Lọc ra các chứng chỉ, giải thưởng chuyên môn nổi bật (trả về danh sách chuỗi ngắn gọn).
+            7. Ngoại ngữ: Tách và chuẩn hóa ngoại ngữ và trình độ tương ứng (trả về danh sách chuỗi ngắn gọn).
+            8. Thư ứng tuyển (Cover Letter): Viết một bức thư xin việc/email ứng tuyển đầy thuyết phục (khoảng 3-4 đoạn ngắn). Văn phong lịch sự, trang trọng, nhấn mạnh sự phù hợp của kỹ năng ứng viên với mục tiêu của nhà tuyển dụng.
+            9. Đánh giá CV (Feedback): Đóng vai trò chuyên gia đánh giá để chỉ ra 3 ý kiến phản biện/gợi ý chi tiết cho CV này (ví dụ gợi ý nên học chứng chỉ gì cụ thể cho ngành học, hay cách tăng tính thuyết phục của kinh nghiệm).
+
+            BẮT BUỘC TRẢ VỀ kết quả theo cấu trúc định dạng JSON nguyên bản, KHÔNG dùng block code markdown (không bao bọc bởi \`\`\`json), với định dạng JSON chuẩn xác sau:
+            {
+              "optimizedGoal": "Nội dung mục tiêu nghề nghiệp trau chuốt",
+              "optimizedSkills": ["Kỹ năng 1", "Kỹ năng 2", "Kỹ năng 3", "Kỹ năng 4"],
+              "optimizedExperience": [
+                {
+                  "org": "TÊN CÔNG TY / CLB TRƯỜNG",
+                  "role": "Vị trí đảm nhiệm",
+                  "time": "Tháng/Năm - Tháng/Năm hoặc Hiện tại",
+                  "bullets": [
+                    "Bullet point hành động chuyên nghiệp số 1 kèm số liệu/kết quả định lượng",
+                    "Bullet point hành động chuyên nghiệp số 2 kèm số liệu/kết quả định lượng"
+                  ]
+                }
+              ],
+              "optimizedEducation": [
+                {
+                  "org": "TÊN TRƯỜNG HỌC",
+                  "role": "Chuyên ngành / Hệ đào tạo",
+                  "time": "Năm bắt đầu - Năm kết thúc hoặc Hiện tại",
+                  "bullets": [
+                    "Thông tin GPA, Xếp loại tốt nghiệp hoặc Học bổng nổi bật",
+                    "Thành tích nổi bật khác hoặc hoạt động tiêu biểu tại trường"
+                  ]
+                }
+              ],
+              "optimizedProjects": [
+                {
+                  "org": "TÊN DỰ ÁN TIÊU BIỂU",
+                  "role": "Vai trò đảm nhận (Trưởng nhóm / Thành viên chính...)",
+                  "time": "Tháng/Năm - Tháng/Năm",
+                  "bullets": [
+                    "Mô tả hành động, công nghệ sử dụng, đóng góp cốt lõi",
+                    "Kết quả định lượng đạt được (lượt xem, điểm số, mức độ hài lòng...)"
+                  ]
+                }
+              ],
+              "optimizedCertificates": ["Tên chứng chỉ 1", "Tên chứng chỉ 2"],
+              "optimizedLanguages": ["Tên ngoại ngữ 1 (Trình độ)", "Tên ngoại ngữ 2 (Trình độ)"],
+              "coverLetter": "Nội dung bức thư ứng tuyển hoàn chỉnh, cách dòng rõ ràng bằng dấu xuống dòng \\n...",
+              "aiFeedback": [
+                "Ý kiến nhận xét/gợi ý cải tiến số 1 (Đặc thù cho vị trí và CV ứng viên)",
+                "Ý kiến nhận xét/gợi ý cải tiến số 2 (Đặc thù cho vị trí và CV ứng viên)",
+                "Ý kiến nhận xét/gợi ý cải tiến số 3 (Đặc thù cho vị trí và CV ứng viên)"
+              ]
+            }
+            `;
+
+                const result = await model.generateContent(prompt);
+                let responseText = result.response.text().trim();
+
+                // Xử lý loại bỏ markdown block nếu AI cố tình trả về
+                if (responseText.startsWith("```json")) {
+                    responseText = responseText.substring(7);
+                } else if (responseText.startsWith("```")) {
+                    responseText = responseText.substring(3);
+                }
+
+                if (responseText.endsWith("```")) {
+                    responseText = responseText.substring(0, responseText.length - 3);
+                }
+
+                responseText = responseText.trim();
+                const data = JSON.parse(responseText);
+
+                // 1. CẬP NHẬT TAB CV PREVIEW
+                document.getElementById("out-name").innerText = name.toUpperCase();
+                document.getElementById("out-major").innerText = major;
+                document.getElementById("out-goal").innerText = data.optimizedGoal;
+
+                // Kỹ năng
+                const skillsContainer = document.getElementById("out-skills");
+                skillsContainer.innerHTML = "";
+                if (Array.isArray(data.optimizedSkills)) {
+                    data.optimizedSkills.forEach(skill => {
+                        const li = document.createElement("li");
+                        li.className = "skill-badge-vertical";
+                        li.innerText = skill;
+                        skillsContainer.appendChild(li);
+                    });
+                }
+
+                // Kinh nghiệm
+                const expContainer = document.getElementById("out-experience");
+                expContainer.innerHTML = "";
+                if (Array.isArray(data.optimizedExperience)) {
+                    data.optimizedExperience.forEach(item => {
+                        const itemDiv = document.createElement("div");
+                        itemDiv.className = "cv-exp-item";
+
+                        const headerDiv = document.createElement("div");
+                        headerDiv.className = "cv-exp-header";
+                        headerDiv.innerHTML = `<span class="cv-exp-org">${item.org.toUpperCase()}</span><span class="cv-exp-time">${item.time}</span>`;
+
+                        const roleDiv = document.createElement("div");
+                        roleDiv.style = "font-style: italic; font-size: 13px; color: #4b5563; margin-bottom: 5px;";
+                        roleDiv.innerText = item.role;
+
+                        const ul = document.createElement("ul");
+                        ul.className = "cv-exp-desc";
+
+                        if (Array.isArray(item.bullets)) {
+                            item.bullets.forEach(bullet => {
+                                const li = document.createElement("li");
+                                li.innerText = bullet;
+                                ul.appendChild(li);
+                            });
+                        }
+
+                        itemDiv.appendChild(headerDiv);
+                        itemDiv.appendChild(roleDiv);
+                        itemDiv.appendChild(ul);
+                        expContainer.appendChild(itemDiv);
+                    });
+                }
+
+                // Học vấn
+                const eduContainer = document.getElementById("out-education");
+                eduContainer.innerHTML = "";
+                if (Array.isArray(data.optimizedEducation)) {
+                    data.optimizedEducation.forEach(item => {
+                        const itemDiv = document.createElement("div");
+                        itemDiv.className = "cv-exp-item";
+
+                        const headerDiv = document.createElement("div");
+                        headerDiv.className = "cv-exp-header";
+                        headerDiv.innerHTML = `<span class="cv-exp-org">${item.org.toUpperCase()}</span><span class="cv-exp-time">${item.time}</span>`;
+
+                        const roleDiv = document.createElement("div");
+                        roleDiv.style = "font-style: italic; font-size: 13px; color: #4b5563; margin-bottom: 5px;";
+                        roleDiv.innerText = item.role;
+
+                        const ul = document.createElement("ul");
+                        ul.className = "cv-exp-desc";
+
+                        if (Array.isArray(item.bullets)) {
+                            item.bullets.forEach(bullet => {
+                                const li = document.createElement("li");
+                                li.innerText = bullet;
+                                ul.appendChild(li);
+                            });
+                        }
+
+                        itemDiv.appendChild(headerDiv);
+                        itemDiv.appendChild(roleDiv);
+                        itemDiv.appendChild(ul);
+                        eduContainer.appendChild(itemDiv);
+                    });
+                }
+
+                // Dự án
+                const projContainer = document.getElementById("out-projects");
+                projContainer.innerHTML = "";
+                if (Array.isArray(data.optimizedProjects)) {
+                    data.optimizedProjects.forEach(item => {
+                        const itemDiv = document.createElement("div");
+                        itemDiv.className = "cv-exp-item";
+
+                        const headerDiv = document.createElement("div");
+                        headerDiv.className = "cv-exp-header";
+                        headerDiv.innerHTML = `<span class="cv-exp-org">${item.org.toUpperCase()}</span><span class="cv-exp-time">${item.time}</span>`;
+
+                        const roleDiv = document.createElement("div");
+                        roleDiv.style = "font-style: italic; font-size: 13px; color: #4b5563; margin-bottom: 5px;";
+                        roleDiv.innerText = item.role;
+
+                        const ul = document.createElement("ul");
+                        ul.className = "cv-exp-desc";
+
+                        if (Array.isArray(item.bullets)) {
+                            item.bullets.forEach(bullet => {
+                                const li = document.createElement("li");
+                                li.innerText = bullet;
+                                ul.appendChild(li);
+                            });
+                        }
+
+                        itemDiv.appendChild(headerDiv);
+                        itemDiv.appendChild(roleDiv);
+                        itemDiv.appendChild(ul);
+                        projContainer.appendChild(itemDiv);
+                    });
+                }
+
+                // Ngoại ngữ
+                const langContainer = document.getElementById("out-languages");
+                langContainer.innerHTML = "";
+                if (Array.isArray(data.optimizedLanguages)) {
+                    data.optimizedLanguages.forEach(lang => {
+                        const li = document.createElement("li");
+                        li.className = "skill-badge-vertical";
+                        li.innerText = lang;
+                        langContainer.appendChild(li);
+                    });
+                }
+
+                // Chứng chỉ
+                const certContainer = document.getElementById("out-certificates");
+                certContainer.innerHTML = "";
+                if (Array.isArray(data.optimizedCertificates)) {
+                    data.optimizedCertificates.forEach(cert => {
+                        const div = document.createElement("div");
+                        div.className = "cert-item-vertical";
+                        div.innerHTML = `<span style="color: var(--cv-primary); font-weight: 700; margin-right: 5px;">✓</span><span>${cert}</span>`;
+                        certContainer.appendChild(div);
+                    });
+                }
+
+                // 2. CẬP NHẬT TAB EMAIL & THƯ XIN VIỆC
+                document.getElementById("out-coverletter").innerText = data.coverLetter;
+
+                // 3. CẬP NHẬT TAB ĐÁNH GIÁ AI
+                const feedbackContainer = document.getElementById("out-feedback");
+                feedbackContainer.innerHTML = "";
+
+                if (Array.isArray(data.aiFeedback)) {
+                    data.aiFeedback.forEach((feedbackText, idx) => {
+                        const card = document.createElement("div");
+                        card.className = "feedback-card";
+                        let iconHtml = `<i data-lucide="sparkles" style="color: #6366f1; flex-shrink: 0; width: 18px; height: 18px;"></i>`;
+                        if (idx === 0) {
+                            card.className = "feedback-card success";
+                            iconHtml = `<i data-lucide="check-circle-2" style="color: #10b981; flex-shrink: 0; width: 18px; height: 18px;"></i>`;
+                        } else if (idx === 1) {
+                            card.className = "feedback-card warning";
+                            iconHtml = `<i data-lucide="alert-triangle" style="color: #f59e0b; flex-shrink: 0; width: 18px; height: 18px;"></i>`;
+                        }
+                        card.innerHTML = `${iconHtml}<p class="feedback-text">${feedbackText}</p>`;
+                        feedbackContainer.appendChild(card);
+                    });
+                }
+
+                // Tự động thay đổi phong nền/màu sắc tương ứng với ngành nghề
+                window.autoDetectIndustry(major);
+
+                // Kích hoạt vẽ lại biểu tượng Lucide
+                if (window.lucide) window.lucide.createIcons();
+
+                // Lập tức nhảy sang Tab kết quả đầu tiên (CV)
+                switchResultTab('cv-preview-tab', document.querySelector('.tab-btn'));
+
+            } catch (error) {
+                console.error("Lỗi:", error);
+                alert("Có lỗi xảy ra khi gọi AI: " + error.message + "\nHãy kiểm tra khóa API và cấu trúc kết nối mạng của bạn.");
+            } finally {
+                loader.style.display = "none";
+            }
+        }
+
+        // Gán hàm vào window để gọi từ onclick trong HTML
+        window.generateAICV = generateAICV;
+
+        // Hàm xuất bản PDF
+        window.exportPDF = function () {
+            const element = document.getElementById('cv-preview');
+            const nameVal = document.getElementById("name").value.trim() || "CV";
+
+            const opt = {
+                margin: 0,
+                filename: `CV_${nameVal.replace(/\s+/g, '_')}.pdf`,
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2.5, useCORS: true },
+                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
+            html2pdf().set(opt).from(element).save();
+        }
+
+        // Tự động đồng bộ hóa và nhận diện phông nền ngay khi tải trang
+        window.syncPreview();
+
+        // Tự động lưu thông tin vào localStorage khi người dùng nhập liệu
+        function saveFormData() {
+            const data = {
+                apiKey: document.getElementById("apiKey").value,
+                name: document.getElementById("name").value,
+                major: document.getElementById("major").value,
+                email: document.getElementById("email").value,
+                phone: document.getElementById("phone").value,
+                address: document.getElementById("address").value,
+                goal: document.getElementById("goal").value,
+                skills: document.getElementById("skills").value,
+                experience: document.getElementById("experience").value,
+                education: document.getElementById("education").value,
+                projects: document.getElementById("projects").value,
+                certificates: document.getElementById("certificates").value,
+            };
+            localStorage.setItem("cv_builder_saved_data", JSON.stringify(data));
+            const btn = document.getElementById("btn-load-saved");
+            if (btn) btn.style.display = "inline-flex";
+        }
+
+        // Gán sự kiện cho tất cả các ô nhập liệu
+        function initAutoSave() {
+            const inputs = ["apiKey", "name", "major", "email", "phone", "address", "goal", "skills", "experience", "education", "projects", "certificates"];
+            inputs.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) {
+                    el.addEventListener("input", saveFormData);
+                }
+            });
+
+            // Kiểm tra nếu có dữ liệu cũ thì hiển thị nút khôi phục
+            const saved = localStorage.getItem("cv_builder_saved_data");
+            if (saved) {
+                const btn = document.getElementById("btn-load-saved");
+                if (btn) btn.style.display = "inline-flex";
+            }
+        }
+
+        // Hàm khôi phục lại dữ liệu đã lưu
+        window.loadSavedData = function () {
+            const saved = localStorage.getItem("cv_builder_saved_data");
+            if (saved) {
+                const data = JSON.parse(saved);
+                for (const key in data) {
+                    const el = document.getElementById(key);
+                    if (el) {
+                        el.value = data[key];
+                    }
+                }
+                window.syncPreview();
+                alert("✓ Đã khôi phục dữ liệu đã nhập gần nhất!");
+            }
+        }
+
+        // Tên miền dùng thử và chính sách bảo mật API Key
+        const DEFAULT_API_KEY = "AQ.Ab8RN6LtVqetMp-9C_6Y4MmnDS-6IRSH1b2C-t6_NL2zA8NFyQ";
+
+        function checkApiKeyVisibility() {
+            // Kiểm tra chế độ admin (?admin=true)
+            const urlParams = new URLSearchParams(window.location.search);
+            const isAdmin = urlParams.get('admin') === 'true';
+
+            const box = document.getElementById("api-key-box");
+            if (box) {
+                if (isAdmin) {
+                    box.style.display = "block";
+                } else {
+                    box.style.display = "none";
+                }
+            }
+        }
+
+        window.getApiKey = function () {
+            const userKey = document.getElementById("apiKey").value.trim();
+            return userKey || DEFAULT_API_KEY;
+        }
+
+        // Kích hoạt tự động lưu và ẩn hiện ô nhập API Key
+        setTimeout(function () {
+            initAutoSave();
+            checkApiKeyVisibility();
+        }, 200);
+
+        // Cài đặt và cập nhật tỷ lệ Scale hiển thị CV vừa vặn mọi màn hình
+        window.updatePreviewScale = function () {
+            const container = document.querySelector('.cv-preview-container');
+            const preview = document.getElementById('cv-preview');
+            const wrapper = document.getElementById('cv-preview-scale-wrapper');
+            if (!container || !preview || !wrapper) return;
+
+            const containerWidth = container.clientWidth;
+            const cvWidth = 794; // 210mm in pixels at 96dpi (793.7px)
+
+            if (containerWidth < cvWidth) {
+                const scale = containerWidth / cvWidth;
+                wrapper.style.transform = `scale(${scale})`;
+                wrapper.style.transformOrigin = 'top center';
+                wrapper.style.width = `${cvWidth}px`;
+                wrapper.style.height = `${1123}px`;
+                container.style.height = `${1123 * scale}px`;
+            } else {
+                wrapper.style.transform = 'none';
+                wrapper.style.width = 'auto';
+                wrapper.style.height = 'auto';
+                container.style.height = 'auto';
+            }
+        };
+
+        window.addEventListener('resize', window.updatePreviewScale);
+
+        // Gọi scale lại khi chuyển đổi bố cục hoặc phông nền
+        const originalSetCVLayout = window.setCVLayout;
+        window.setCVLayout = function (layoutName) {
+            originalSetCVLayout(layoutName);
+            setTimeout(window.updatePreviewScale, 50);
+        };
+        const originalSetCVIndustry = window.setCVIndustry;
+        window.setCVIndustry = function (industryName) {
+            originalSetCVIndustry(industryName);
+            setTimeout(window.updatePreviewScale, 50);
+        };
+
+        // Gọi khởi tạo lần đầu
+        setTimeout(window.updatePreviewScale, 150);
+
+        // Hàm tạo Email ứng tuyển bằng AI (độc lập, không tạo lại CV)
+        window.generateEmailOnly = async function () {
+            const key = window.getApiKey();
+            if (!key) {
+                alert("⚠️ Vui lòng nhập Gemini API Key để sử dụng tính năng này!");
+                return;
+            }
+
+            const name = document.getElementById("name").value.trim() || "Nguyễn Văn A";
+            const major = document.getElementById("major").value.trim() || "Ứng viên";
+            const goal = document.getElementById("goal").value.trim() || "";
+            const skills = document.getElementById("skills").value.trim() || "";
+            const experience = document.getElementById("experience").value.trim() || "";
+            const education = document.getElementById("education").value.trim() || "";
+            const projects = document.getElementById("projects").value.trim() || "";
+            const certificates = document.getElementById("certificates").value.trim() || "";
+
+            const btn = document.getElementById("btn-generate-email");
+            btn.disabled = true;
+            btn.innerHTML = '<i data-lucide="loader-2" class="lucide-inline" style="animation: spin 1s linear infinite;"></i> AI đang viết thư...';
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+
+            try {
+                const { GoogleGenerativeAI } = await import("https://esm.run/@google/generative-ai");
+                const genAI = new GoogleGenerativeAI(key);
+                const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+
+                const prompt = `Bạn là chuyên gia tư vấn tuyển dụng hàng đầu Việt Nam. Hãy viết một bức thư ứng tuyển xin việc (cover letter / email xin việc) hoàn chỉnh, chuyên nghiệp bằng tiếng Việt dành cho ứng viên sau:
+
+Họ tên: ${name}
+Vị trí ứng tuyển: ${major}
+Mục tiêu nghề nghiệp: ${goal}
+Kỹ năng: ${skills}
+Kinh nghiệm & hoạt động: ${experience}
+Học vấn: ${education}
+Dự án tiêu biểu: ${projects}
+Chứng chỉ: ${certificates}
+
+Yêu cầu bức thư:
+- Mở đầu lịch sự, nêu rõ vị trí ứng tuyển
+- Đoạn 1: Giới thiệu bản thân và lý do chọn công ty
+- Đoạn 2: Nêu bật 2-3 điểm mạnh / thành tích cụ thể phù hợp vị trí
+- Đoạn 3: Thể hiện sự nhiệt huyết, mong muốn đóng góp
+- Kết thúc lịch sự, mời phỏng vấn
+- Ký tên ${name}
+- Tone: chuyên nghiệp, tự tin, trẻ trung phù hợp môi trường hiện đại
+- Dùng dấu xuống dòng thực sự (\n) giữa các đoạn
+- KHÔNG trả về JSON, KHÔNG dùng markdown, chỉ trả về nội dung thư thuần túy.`;
+
+                const result = await model.generateContent(prompt);
+                const emailText = result.response.text().trim();
+
+                document.getElementById("out-coverletter").innerText = emailText;
+
+                // Cập nhật tiêu đề email
+                document.getElementById("out-email-subject").innerText = `Ứng tuyển ${major} - ${name}`;
+                document.getElementById("email-sender-val").innerText = name;
+
+                // Cập nhật tên file đính kèm
+                const safeName = name.replace(/\s+/g, '_');
+                const attachEl = document.getElementById("email-attachment-name");
+                if (attachEl) attachEl.innerText = `CV_${safeName}.pdf`;
+
+            } catch (err) {
+                alert("Lỗi: " + err.message);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<i data-lucide="sparkles" class="lucide-inline" style="stroke-width: 2.5px;"></i> Viết Email Ứng Tuyển Xin Việc bằng AI';
+                if (typeof lucide !== 'undefined') lucide.createIcons();
+            }
+        };
+
+        // Hàm tải xuống Cover Letter dạng file .txt
+        window.downloadCoverLetter = function () {
+            const text = document.getElementById("out-coverletter").innerText;
+            const nameVal = document.getElementById("name").value.trim() || "Nguyen_Van_A";
+            const safeName = nameVal.replace(/\s+/g, '_');
+
+            const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
+            const link = document.createElement("a");
+            link.href = URL.createObjectURL(blob);
+            link.download = `Thu_Ung_Tuyen_${safeName}.txt`;
+            link.click();
+            URL.revokeObjectURL(link.href);
+        };
+
+        // --- AI ĐÁNH GIÁ CV SẴN CÓ QUA HÌNH ẢNH / LINK ---
+        let uploadedImageBase64 = null;
+        let uploadedImageMimeType = null;
+
+        // Chuyển URL sang Base64
+        function urlToBase64(url) {
+            return new Promise((resolve, reject) => {
+                const img = new Image();
+                img.crossOrigin = "anonymous";
+                img.onload = function () {
+                    const canvas = document.createElement("canvas");
+                    canvas.width = img.naturalWidth;
+                    canvas.height = img.naturalHeight;
+                    const ctx = canvas.getContext("2d");
+                    ctx.drawImage(img, 0, 0);
+                    try {
+                        const dataURL = canvas.toDataURL("image/png");
+                        const base64 = dataURL.split(",")[1];
+                        resolve({ base64, mimeType: "image/png" });
+                    } catch (err) {
+                        reject(err);
+                    }
+                };
+                img.onerror = function () {
+                    reject(new Error("Không thể tải ảnh. Vui lòng kiểm tra đường dẫn."));
+                };
+                img.src = url;
+            });
+        }
+
+        // Xử lý khi tải file ảnh lên
+        window.handleReviewImageUpload = function (input) {
+            if (input.files && input.files[0]) {
+                const file = input.files[0];
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    uploadedImageBase64 = e.target.result.split(",")[1];
+                    uploadedImageMimeType = file.type;
+
+                    document.getElementById("review-preview-img").src = e.target.result;
+                    document.getElementById("review-preview-box").style.display = "block";
+                    document.getElementById("review-upload-status").innerText = "✓ Đã chọn ảnh: " + file.name;
+                    document.getElementById("review-image-url").value = "";
+                };
+                reader.readAsDataURL(file);
+            }
+        };
+
+        // Xử lý xem trước link ảnh
+        window.previewReviewImageUrl = function () {
+            const url = document.getElementById("review-image-url").value.trim();
+            if (url) {
+                document.getElementById("review-preview-img").src = url;
+                document.getElementById("review-preview-box").style.display = "block";
+                document.getElementById("review-upload-status").innerText = "";
+                uploadedImageBase64 = null;
+                uploadedImageMimeType = null;
+            } else {
+                document.getElementById("review-preview-box").style.display = "none";
+            }
+        };
+
+        // Chạy AI đánh giá ảnh CV
+        window.analyzeCVImage = async function () {
+            const key = window.getApiKey();
+            if (!key) {
+                alert("⚠️ Vui lòng nhập Gemini API Key ở góc trên để sử dụng tính năng đánh giá!");
+                return;
+            }
+
+            const url = document.getElementById("review-image-url").value.trim();
+            let imgData = null;
+
+            const loader = document.getElementById("loading-overlay");
+            const loadingText = document.getElementById("loading-text");
+            loadingText.innerText = "Đang gửi ảnh CV cho trợ lý AI phân tích và phản biện... Vui lòng đợi!";
+            loader.style.display = "flex";
+
+            try {
+                if (uploadedImageBase64) {
+                    imgData = {
+                        inlineData: {
+                            data: uploadedImageBase64,
+                            mimeType: uploadedImageMimeType || "image/png"
+                        }
+                    };
+                } else if (url) {
+                    try {
+                        const res = await urlToBase64(url);
+                        imgData = {
+                            inlineData: {
+                                data: res.base64,
+                                mimeType: res.mimeType
+                            }
+                        };
+                    } catch (err) {
+                        loader.style.display = "none";
+                        alert("⚠️ Lỗi tải ảnh từ đường dẫn (CORS hoặc sai link). Vui lòng lưu ảnh về máy và chọn 'Tải ảnh lên từ máy' để tránh giới hạn bảo mật của trình duyệt.");
+                        return;
+                    }
+                } else {
+                    loader.style.display = "none";
+                    alert("⚠️ Vui lòng tải lên ảnh chụp CV hoặc dán link ảnh để AI đánh giá!");
+                    return;
+                }
+
+                const { GoogleGenerativeAI } = await import("https://esm.run/@google/generative-ai");
+                const genAI = new GoogleGenerativeAI(key);
+                const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+
+                const prompt = `
+            Bạn là chuyên gia tuyển dụng và tư vấn hướng nghiệp cao cấp.
+            Hãy phân tích kỹ lưỡng hình ảnh CV đính kèm và thực hiện các nhiệm vụ sau:
+            1. Nhận diện các lỗi cụ thể trong CV (về bố cục, lỗi chính tả, cách dùng từ, tính logic hoặc nội dung thiếu sót).
+            2. Chỉ ra điểm mạnh (nếu có) và đề xuất các điểm cần sửa đổi, nâng cấp cụ thể để CV chuẩn ATS và chuyên nghiệp hơn.
+            3. Hỗ trợ viết lại/sửa đổi hộ các nội dung lỗi hoặc viết chưa hay một cách chuẩn chỉnh nhất.
+
+            Trả về kết quả dưới định dạng JSON duy nhất theo cấu trúc sau:
+            {
+              "weaknesses": [
+                "Lỗi/Điểm yếu 1 kèm giải thích chi tiết và cách sửa đổi cụ thể",
+                "Lỗi/Điểm yếu 2 kèm giải thích chi tiết và cách sửa đổi cụ thể"
+              ],
+              "strengths": [
+                "Điểm mạnh 1 giúp CV nổi bật",
+                "Điểm mạnh 2 giúp CV nổi bật"
+              ],
+              "improvements": [
+                "Nội dung sửa đổi hộ: Viết lại phần Mục tiêu/Kinh nghiệm/Kỹ năng bị lỗi để ứng viên chỉ việc copy-paste."
+              ]
+            }
+            Do not wrap the response in any markdown formatting (like \`\`\`json). Return raw JSON only.
+            `;
+
+                const result = await model.generateContent([prompt, imgData]);
+                let responseText = result.response.text().trim();
+
+                const startIdx = responseText.indexOf('{');
+                const endIdx = responseText.lastIndexOf('}');
+                if (startIdx !== -1 && endIdx !== -1) {
+                    responseText = responseText.substring(startIdx, endIdx + 1);
+                }
+
+                const data = JSON.parse(responseText);
+
+                const resultBox = document.getElementById("review-result-box");
+                const resultContent = document.getElementById("review-result-content");
+                resultContent.innerHTML = "";
+
+                if (Array.isArray(data.strengths)) {
+                    data.strengths.forEach(txt => {
+                        const card = document.createElement("div");
+                        card.className = "feedback-card success";
+                        card.innerHTML = `<i data-lucide="check-circle-2" style="color: #10b981; flex-shrink: 0; width: 18px; height: 18px;"></i>
+                                      <p class="feedback-text"><strong>Điểm mạnh:</strong> ${txt}</p>`;
+                        resultContent.appendChild(card);
+                    });
+                }
+
+                if (Array.isArray(data.weaknesses)) {
+                    data.weaknesses.forEach(txt => {
+                        const card = document.createElement("div");
+                        card.className = "feedback-card warning";
+                        card.innerHTML = `<i data-lucide="alert-triangle" style="color: #f59e0b; flex-shrink: 0; width: 18px; height: 18px;"></i>
+                                      <p class="feedback-text"><strong>Lỗi cần sửa:</strong> ${txt}</p>`;
+                        resultContent.appendChild(card);
+                    });
+                }
+
+                if (Array.isArray(data.improvements)) {
+                    data.improvements.forEach(txt => {
+                        const card = document.createElement("div");
+                        card.className = "feedback-card";
+                        card.style.borderLeft = "4px solid #6366f1";
+                        card.innerHTML = `<i data-lucide="sparkles" style="color: #6366f1; flex-shrink: 0; width: 18px; height: 18px;"></i>
+                                      <p class="feedback-text"><strong>Đề xuất viết lại hộ:</strong> <pre style="white-space: pre-wrap; font-family: inherit; margin: 5px 0 0 0; color: var(--workspace-text);">${txt}</pre></p>`;
+                        resultContent.appendChild(card);
+                    });
+                }
+
+                if (typeof lucide !== 'undefined') {
+                    lucide.createIcons();
+                }
+
+                resultBox.style.display = "block";
+                resultBox.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+            } catch (error) {
+                console.error(error);
+                alert("⚠️ Có lỗi xảy ra trong quá trình phân tích CV: " + error.message);
+            } finally {
+                loader.style.display = "none";
+                loadingText.innerText = "Đang gửi thông tin cho chuyên gia trí tuệ nhân tạo Gemini phân tích và thiết kế nội dung... Vui lòng đợi trong giây lát!";
+            }
+        };
+    </script>
+
+</body>
+
+</html>
