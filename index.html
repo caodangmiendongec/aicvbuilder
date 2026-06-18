@@ -364,8 +364,28 @@
         }
 
         @media (max-width: 600px) {
+            body {
+                padding: 10px;
+            }
+            .panel {
+                padding: 15px 12px;
+            }
             .form-row {
                 grid-template-columns: 1fr;
+            }
+            .cv-controls {
+                padding: 12px;
+                flex-direction: column;
+                align-items: stretch;
+                gap: 12px;
+            }
+            .cv-opt-section {
+                justify-content: space-between;
+                width: 100%;
+            }
+            .btn-pdf {
+                width: 100%;
+                justify-content: center;
             }
         }
 
@@ -1870,11 +1890,14 @@
 
         <div class="panel-title">
             <span><i data-lucide="clipboard-list" class="lucide-panel-icon"></i> Nhập liệu Hồ sơ</span>
-            <button class="btn-secondary" onclick="loadSampleData()"><i data-lucide="database-backup" class="lucide-inline"></i> Tải Dữ Liệu Mẫu</button>
+            <div style="display: flex; gap: 8px;">
+                <button class="btn-secondary" onclick="loadSampleData()"><i data-lucide="database-backup" class="lucide-inline"></i> Tải Dữ Liệu Mẫu</button>
+                <button id="btn-load-saved" class="btn-secondary" style="display: none;" onclick="loadSavedData()"><i data-lucide="history" class="lucide-inline"></i> Dùng Dữ Liệu Đã Lưu</button>
+            </div>
         </div>
 
-        <div class="api-box">
-            <label><i data-lucide="key-round" class="lucide-inline" style="color: #fbbf24; vertical-align: -2px;"></i> Nhập Gemini API Key của bạn (Bắt buộc):</label>
+        <div class="api-box" id="api-key-box" style="display: none;">
+            <label><i data-lucide="key-round" class="lucide-inline" style="color: #fbbf24; vertical-align: -2px;"></i> Nhập Gemini API Key của bạn:</label>
             <input type="password" id="apiKey" placeholder="Nhập API Key bắt đầu bằng AIzaSy...">
             <small style="color: #fbbf24; font-size: 0.8rem; display: block; margin-top: 6px;">
                 * Bắt buộc. Vui lòng cung cấp mã API để kích hoạt lõi tối ưu hóa CV bằng AI.
@@ -1885,11 +1908,11 @@
         </div>
 
         <!-- Thông tin cá nhân -->
-        <h3 style="color: var(--workspace-text); margin-top: 0; margin-bottom: 15px; border-bottom: 1px solid var(--workspace-border); padding-bottom: 8px; font-size: 1.1rem; display: flex; align-items: center; gap: 4px;"><i data-lucide="user" class="lucide-h3-icon"></i> Thông tin cá nhân (Đồng bộ trực tiếp)</h3>
+        <h3 style="color: var(--workspace-text); margin-top: 0; margin-bottom: 15px; border-bottom: 1px solid var(--workspace-border); padding-bottom: 8px; font-size: 1.1rem; display: flex; align-items: center; gap: 4px;"><i data-lucide="user" class="lucide-h3-icon"></i> Thông tin cá nhân</h3>
         
         <div class="form-row">
             <div class="form-group" style="grid-column: span 2;">
-                <label>Ảnh đại diện (Avatar):</label>
+                <label>Ảnh đại diện:</label>
                 <div style="display: flex; gap: 15px; align-items: center;">
                     <div id="avatar-input-preview" style="width: 50px; height: 50px; border-radius: 50%; background: rgba(255,255,255,0.05); border: 1px solid var(--workspace-border); display: flex; align-items: center; justify-content: center; overflow: hidden; flex-shrink: 0;">
                         <i data-lucide="user" style="width: 24px; height: 24px; color: var(--workspace-text-muted);"></i>
@@ -1942,38 +1965,38 @@
         <h3 style="color: var(--workspace-text); margin-top: 25px; margin-bottom: 15px; border-bottom: 1px solid var(--workspace-border); padding-bottom: 8px; font-size: 1.1rem; display: flex; align-items: center; gap: 4px;"><i data-lucide="database" class="lucide-h3-icon" style="color: #a855f7;"></i> Dữ liệu thô gửi cho AI trau chuốt</h3>
 
         <div class="form-group">
-            <label>1. Mục tiêu nghề nghiệp (Mô tả ngắn gọn, thô sơ):</label>
+            <label>1. Mục tiêu nghề nghiệp:</label>
             <textarea id="goal" placeholder="Ví dụ: Em muốn làm marketing thực tế, học hỏi kinh nghiệm, giúp công ty tăng doanh thu."></textarea>
         </div>
 
         <div class="form-group">
-            <label>2. Kỹ năng cá nhân (Liệt kê thô sơ từ khóa):</label>
+            <label>2. Kỹ năng cá nhân:</label>
             <textarea id="skills" placeholder="Ví dụ: biết dùng canva thiết kế ảnh cơ bản, viết bài facebook, nói tiếng anh ổn, làm việc nhóm tốt"></textarea>
         </div>
 
         <div class="form-group">
-            <label>3. Kinh nghiệm làm việc & Hoạt động (Ghi dạng liệt kê thô):</label>
+            <label>3. Kinh nghiệm làm việc & Hoạt động:</label>
             <textarea style="height: 120px;" id="experience" placeholder="Ví dụ:
 - Làm phục vụ quán cà phê 3 tháng: bê đồ uống, tiếp khách, dọn bàn.
 - Trưởng ban truyền thông câu lạc bộ trường: viết nội dung cho trang facebook CLB, thiết kế ảnh đăng bài thu hút được đông đảo sinh viên tương tác."></textarea>
         </div>
 
         <div class="form-group">
-            <label>4. Học vấn & Trình độ giáo dục (Ghi dạng liệt kê thô):</label>
+            <label>4. Học vấn & Trình độ giáo dục:</label>
             <textarea style="height: 90px;" id="education" placeholder="Ví dụ:
 - Học sinh Đại học Kinh tế Quốc dân ngành Marketing năm 2, điểm trung bình tích lũy 3.2.
 - Học sinh THPT chuyên Ngoại ngữ, đạt giải Nhì cấp thành phố môn tiếng Anh năm lớp 11."></textarea>
         </div>
 
         <div class="form-group">
-            <label>5. Dự án cá nhân hoặc tiêu biểu (Ghi dạng thô):</label>
+            <label>5. Dự án cá nhân hoặc tiêu biểu:</label>
             <textarea style="height: 90px;" id="projects" placeholder="Ví dụ:
 - Làm dự án xây dựng ứng dụng chat nhóm 4 người bằng ReactJS, trực tiếp viết mã giao diện và xử lý gọi tin nhắn real-time.
 - Tham gia dự án nghiên cứu môi trường xanh của câu lạc bộ, xây dựng báo cáo chuyên đề và slide trình bày."></textarea>
         </div>
 
         <div class="form-group">
-            <label>6. Chứng chỉ & Ngoại ngữ (Ghi dạng liệt kê thô):</label>
+            <label>6. Chứng chỉ & Ngoại ngữ:</label>
             <textarea style="height: 80px;" id="certificates" placeholder="Ví dụ:
 - IELTS 6.5, tiếng Trung giao tiếp cơ bản.
 - Chứng chỉ hoàn thành khóa học Google Analytics, Giải Ba học sinh giỏi môn Văn cấp tỉnh."></textarea>
@@ -2286,7 +2309,7 @@ Nguyễn Văn A</pre>
                 </p>
 
                 <div class="form-group" style="margin-bottom: 15px;">
-                    <label for="review-image-url" style="font-size: 0.9rem; font-weight: 500;"><i data-lucide="link" class="lucide-inline" style="width: 14px; height: 14px;"></i> Đường dẫn ảnh CV (Image URL):</label>
+                    <label for="review-image-url" style="font-size: 0.9rem; font-weight: 500;"><i data-lucide="link" class="lucide-inline" style="width: 14px; height: 14px;"></i> Đường dẫn ảnh CV:</label>
                     <input type="text" id="review-image-url" placeholder="Nhập link ảnh CV tại đây..." oninput="previewReviewImageUrl()">
                 </div>
 
@@ -2886,7 +2909,7 @@ Nguyễn Văn A</pre>
 
     // Tối ưu hóa CV & Tạo tài nguyên bằng AI
     async function generateAICV() {
-        const key = document.getElementById("apiKey").value.trim();
+        const key = window.getApiKey();
         const name = document.getElementById("name").value.trim() || "Nguyễn Văn A";
         const major = document.getElementById("major").value.trim() || "Thực Tập Sinh Digital Marketing";
         const goal = document.getElementById("goal").value.trim() || "Em muốn làm marketing thực tế, học hỏi kinh nghiệm, giúp công ty tăng doanh thu.";
@@ -3207,6 +3230,90 @@ Nguyễn Văn A</pre>
     // Tự động đồng bộ hóa và nhận diện phông nền ngay khi tải trang
     window.syncPreview();
 
+    // Tự động lưu thông tin vào localStorage khi người dùng nhập liệu
+    function saveFormData() {
+        const data = {
+            apiKey: document.getElementById("apiKey").value,
+            name: document.getElementById("name").value,
+            major: document.getElementById("major").value,
+            email: document.getElementById("email").value,
+            phone: document.getElementById("phone").value,
+            address: document.getElementById("address").value,
+            goal: document.getElementById("goal").value,
+            skills: document.getElementById("skills").value,
+            experience: document.getElementById("experience").value,
+            education: document.getElementById("education").value,
+            projects: document.getElementById("projects").value,
+            certificates: document.getElementById("certificates").value,
+        };
+        localStorage.setItem("cv_builder_saved_data", JSON.stringify(data));
+        const btn = document.getElementById("btn-load-saved");
+        if (btn) btn.style.display = "inline-flex";
+    }
+
+    // Gán sự kiện cho tất cả các ô nhập liệu
+    function initAutoSave() {
+        const inputs = ["apiKey", "name", "major", "email", "phone", "address", "goal", "skills", "experience", "education", "projects", "certificates"];
+        inputs.forEach(id => {
+            const el = document.getElementById(id);
+            if (el) {
+                el.addEventListener("input", saveFormData);
+            }
+        });
+
+        // Kiểm tra nếu có dữ liệu cũ thì hiển thị nút khôi phục
+        const saved = localStorage.getItem("cv_builder_saved_data");
+        if (saved) {
+            const btn = document.getElementById("btn-load-saved");
+            if (btn) btn.style.display = "inline-flex";
+        }
+    }
+
+    // Hàm khôi phục lại dữ liệu đã lưu
+    window.loadSavedData = function() {
+        const saved = localStorage.getItem("cv_builder_saved_data");
+        if (saved) {
+            const data = JSON.parse(saved);
+            for (const key in data) {
+                const el = document.getElementById(key);
+                if (el) {
+                    el.value = data[key];
+                }
+            }
+            window.syncPreview();
+            alert("✓ Đã khôi phục dữ liệu đã nhập gần nhất!");
+        }
+    }
+
+    // Tên miền dùng thử và chính sách bảo mật API Key
+    const DEFAULT_API_KEY = "AQ.Ab8RN6LtVqetMp-9C_6Y4MmnDS-6IRSH1b2C-t6_NL2zA8NFyQ";
+    
+    function checkApiKeyVisibility() {
+        // Kiểm tra chế độ admin (?admin=true)
+        const urlParams = new URLSearchParams(window.location.search);
+        const isAdmin = urlParams.get('admin') === 'true';
+        
+        const box = document.getElementById("api-key-box");
+        if (box) {
+            if (isAdmin) {
+                box.style.display = "block";
+            } else {
+                box.style.display = "none";
+            }
+        }
+    }
+
+    window.getApiKey = function() {
+        const userKey = document.getElementById("apiKey").value.trim();
+        return userKey || DEFAULT_API_KEY;
+    }
+
+    // Kích hoạt tự động lưu và ẩn hiện ô nhập API Key
+    setTimeout(function() {
+        initAutoSave();
+        checkApiKeyVisibility();
+    }, 200);
+
     // Cài đặt và cập nhật tỷ lệ Scale hiển thị CV vừa vặn mọi màn hình
     window.updatePreviewScale = function() {
         const container = document.querySelector('.cv-preview-container');
@@ -3251,7 +3358,7 @@ Nguyễn Văn A</pre>
 
     // Hàm tạo Email ứng tuyển bằng AI (độc lập, không tạo lại CV)
     window.generateEmailOnly = async function() {
-        const key = document.getElementById("apiKey").value.trim();
+        const key = window.getApiKey();
         if (!key) {
             alert("⚠️ Vui lòng nhập Gemini API Key để sử dụng tính năng này!");
             return;
@@ -3399,7 +3506,7 @@ Yêu cầu bức thư:
 
     // Chạy AI đánh giá ảnh CV
     window.analyzeCVImage = async function() {
-        const key = document.getElementById("apiKey").value.trim();
+        const key = window.getApiKey();
         if (!key) {
             alert("⚠️ Vui lòng nhập Gemini API Key ở góc trên để sử dụng tính năng đánh giá!");
             return;
